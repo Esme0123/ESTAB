@@ -16,21 +16,20 @@ function Hero({ onBrowse }) {
         <div className="flex-1">
           <span className="inline-flex items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-green">
             <Sparkles className="h-3.5 w-3.5" />
-            Soluciones integrales
+            Equipamiento médico e insumos
           </span>
 
           <h1 className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-            Soluciones Integrales para tu{" "}
+            Equipamiento para tu{" "}
             <span className="bg-gradient-to-r from-brand-green to-pulse bg-clip-text text-transparent">
-              Empresa
+              Clínica o Laboratorio
             </span>
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg text-white/70 lg:mx-0">
-            En Estab Group S.R.L. proveemos material de escritorio y limpieza,
-            equipamiento médico, mobiliario, tecnología, importación y
-            comercialización. Innovación, Tecnología y Confianza en cada
-            entrega.
+            En Estab Group S.R.L. proveemos equipamiento médico, mobiliario de
+            laboratorio y clínica, insumos médicos y material corporativo y de
+            limpieza. Innovación, Tecnología y Confianza en cada entrega.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:justify-start">

@@ -9,7 +9,7 @@ function CategoryGrid({ activeCategory, onSelectCategory }) {
           Nuestras Áreas de Especialización
         </h2>
         <p className="mt-3 text-slate-500">
-          Cuatro líneas de negocio para cubrir todas las necesidades de tu empresa.
+          Cuatro líneas de negocio para clínicas, laboratorios y empresas.
         </p>
       </div>
 

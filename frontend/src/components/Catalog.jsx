@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { MessageCircle, Eye, X, PackageSearch } from "lucide-react"
+import { MessageCircle, Eye, X, PackageSearch, Search } from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl } from "../data/mockProducts"
 
 function ProductModal({ product, onClose }) {
@@ -71,7 +71,7 @@ function ProductModal({ product, onClose }) {
   )
 }
 
-function Catalog({ products, searchTerm, activeCategory, onSelectCategory }) {
+function Catalog({ products, searchTerm, setSearchTerm, activeCategory, onSelectCategory }) {
   const [selected, setSelected] = useState(null)
 
   const catName = activeCategory
@@ -80,11 +80,13 @@ function Catalog({ products, searchTerm, activeCategory, onSelectCategory }) {
 
   const filtered = products.filter((p) => {
     const matchesCategory = !activeCategory || p.categoria === activeCategory
-    const q = searchTerm.toLowerCase()
+    const q = searchTerm.toLowerCase().trim()
+    const cat = CATEGORIES.find((c) => c.id === p.categoria)
     const matchesSearch =
       !q ||
       p.nombre.toLowerCase().includes(q) ||
-      p.descripcion.toLowerCase().includes(q)
+      p.descripcion.toLowerCase().includes(q) ||
+      (cat && cat.nombre.toLowerCase().includes(q))
     return matchesCategory && matchesSearch
   })
 
@@ -95,12 +97,23 @@ function Catalog({ products, searchTerm, activeCategory, onSelectCategory }) {
           <h2 className="text-3xl font-extrabold text-navy sm:text-4xl">
             Catálogo de Productos
           </h2>
-<p className="mt-2 text-slate-500">
+          <p className="mt-2 text-slate-500">
             {catName
               ? `Mostrando productos de: ${catName}`
-              : "Toda la gama de productos y servicios."}
+              : "Toda la gama de productos del rubro médico y laboratorio."}
           </p>
         </div>
+      </div>
+
+      <div className="relative mb-6">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar por nombre o categoría..."
+          className="w-full rounded-full border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm text-navy shadow-card outline-none transition placeholder:text-slate-400 focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
+        />
       </div>
 
       <div className="mb-8 flex flex-wrap gap-2">

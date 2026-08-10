@@ -1,4 +1,6 @@
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react"
+import { Phone, Mail, MapPin, MessageCircle, Lock } from "lucide-react"
+import { Link } from "react-router-dom"
+import { CATEGORIES } from "../data/mockProducts"
 
 const WHATSAPP_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}`
 
@@ -20,24 +22,25 @@ const SOCIAL = [
   },
 ]
 
-function Footer() {
+function Footer({ onSelectCategory }) {
+  const handleLine = (id) => {
+    onSelectCategory(id)
+    document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" })
+  }
+
   return (
     <footer className="bg-navy text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
         <div>
-          <div className="flex items-center gap-3">
-            <img src="/logo-estab.svg" alt="Logo Estab Group" className="h-12 w-12 rounded-xl" />
-            <div>
-              <p className="text-lg font-bold tracking-wide">{import.meta.env.VITE_APP_TITLE}</p>
-              <p className="text-[11px] uppercase tracking-[0.25em] text-brand-green">
-                Innovación · Tecnología · Confianza
-              </p>
-            </div>
-          </div>
+          <img
+            src="/logo_nombre_2.jpeg"
+            alt="Logo Estab Group S.R.L."
+            className="h-16 w-auto rounded-xl"
+          />
           <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">
-            Proveemos soluciones integrales de escritorio, limpieza,
-            equipamiento médico, mobiliario, tecnología, importación y
-            comercialización para empresas.
+            Proveemos equipamiento médico, mobiliario de laboratorio y clínica,
+            insumos médicos y material corporativo y de limpieza para clínicas,
+            hospitales y empresas en Bolivia.
           </p>
           <div className="mt-5 flex gap-3">
             {SOCIAL.map(({ name, href, path }) => (
@@ -94,10 +97,16 @@ function Footer() {
             Líneas de negocio
           </h3>
           <ul className="space-y-2 text-sm text-white/80">
-            <li>Material de Escritorio y Limpieza</li>
-            <li>Equipamiento Médico</li>
-            <li>Mobiliario y Tecnología</li>
-            <li>Importación y Comercialización</li>
+            {CATEGORIES.map((cat) => (
+              <li key={cat.id}>
+                <button
+                  onClick={() => handleLine(cat.id)}
+                  className="rounded-lg px-1 py-0.5 text-left transition hover:text-brand-green"
+                >
+                  {cat.emoji} {cat.nombre}
+                </button>
+              </li>
+            ))}
           </ul>
           <a
             href={WHATSAPP_URL}
@@ -111,9 +120,18 @@ function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} {import.meta.env.VITE_APP_TITLE} · Todos los
-        derechos reservados
+      <div className="flex flex-col items-center justify-center gap-3 border-t border-white/10 px-4 py-4 text-xs text-white/40 sm:flex-row sm:justify-between sm:px-6">
+        <p>
+          © {new Date().getFullYear()} {import.meta.env.VITE_APP_TITLE} · Todos los
+          derechos reservados
+        </p>
+        <Link
+          to="/admin"
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-white/50 transition hover:bg-white/10 hover:text-white"
+        >
+          <Lock className="h-3 w-3" />
+          Panel de Administración
+        </Link>
       </div>
     </footer>
   )

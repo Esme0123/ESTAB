@@ -103,7 +103,7 @@ function AdminPanel({ products, setProducts }) {
           <input
             value={form.nombre}
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            placeholder="Ej: Silla ergonómica"
+            placeholder="Ej: Camilla de examen"
             className={inputClass}
           />
 
@@ -127,7 +127,7 @@ function AdminPanel({ products, setProducts }) {
             value={form.descripcion}
             onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
             rows="3"
-            placeholder="Descripción breve del producto para el catálogo público."
+            placeholder="Ej: Camilla de exploración con colchoneta acolchada."
             className={inputClass}
           />
 
