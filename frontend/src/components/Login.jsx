@@ -1,29 +1,41 @@
 import { useState } from "react"
 import { Navigate, Link, useNavigate } from "react-router-dom"
-import { Lock, User, LogIn, ArrowLeft, MessageCircle } from "lucide-react"
-import { isAuthenticated, login } from "../lib/auth"
+import { Lock, Mail, LogIn, ArrowLeft, MessageCircle, Loader2 } from "lucide-react"
+import { isAuthenticated, setSession } from "../lib/auth"
+import { api } from "../services/api"
 import { WHATSAPP_NUMBER } from "../data/mockProducts"
 
 function Login() {
   const navigate = useNavigate()
-  const [usuario, setUsuario] = useState("")
-  const [contrasena, setContrasena] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   if (isAuthenticated()) {
     return <Navigate to="/admin" replace />
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!usuario.trim() || !contrasena.trim()) {
-      setError("Ingresa tu usuario y contraseña.")
+    setError("")
+    if (!email.trim() || !password.trim()) {
+      setError("Ingresa tu correo y contraseña.")
       return
     }
-    if (login(usuario, contrasena)) {
+    setLoading(true)
+    try {
+      const data = await api.login(email.trim(), password)
+      setSession(data.token, {
+        nombre: data.nombre,
+        email: data.email,
+        rol: data.rol,
+      })
       navigate("/admin", { replace: true })
-    } else {
-      setError("Credenciales incorrectas. Verifica e inténtalo de nuevo.")
+    } catch (err) {
+      setError(err.message || "No se pudo iniciar sesión.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -47,14 +59,16 @@ function Login() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <img
-            src="/logo_nombre_2.jpeg"
-            alt="Logo Estab Group S.R.L."
-            className="h-16 w-auto rounded-xl"
-          />
+          <span className="flex items-center justify-center rounded-2xl bg-white p-1.5 shadow-md">
+            <img
+              src="/logo_nombre_2.jpeg"
+              alt="Logo Estab Group S.R.L."
+              className="h-14 w-auto rounded-xl object-contain"
+            />
+          </span>
           <h1 className="mt-6 text-2xl font-extrabold text-white">Panel de Administración</h1>
           <p className="mt-1 text-sm text-white/60">
-            Accede para gestionar el catálogo de productos
+            Accede para gestionar el catálogo y las cotizaciones
           </p>
         </div>
 
@@ -62,14 +76,14 @@ function Login() {
           onSubmit={handleSubmit}
           className="rounded-3xl bg-white/5 p-6 shadow-2xl ring-1 ring-white/10 backdrop-blur-sm"
         >
-          <label className="mb-1 block text-sm font-semibold text-white/80">Usuario</label>
+          <label className="mb-1 block text-sm font-semibold text-white/80">Correo</label>
           <div className="relative mb-4">
-            <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
-              type="text"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              placeholder="admin"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@estabgroup.com"
               autoComplete="username"
               className={inputClass}
             />
@@ -80,9 +94,9 @@ function Login() {
             <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
               type="password"
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-              placeholder="•••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               autoComplete="current-password"
               className={inputClass}
             />
@@ -96,16 +110,24 @@ function Login() {
 
           <button
             type="submit"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/30 transition hover:bg-brand-green-dark"
+            disabled={loading}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/30 transition hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <LogIn className="h-4 w-4" />
-            Iniciar sesión
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+            {loading ? "Verificando..." : "Iniciar sesión"}
           </button>
 
-          <p className="mt-4 text-center text-xs text-white/40">
-            Acceso demo · Usuario: <span className="font-semibold text-white/70">admin</span> ·
-            Contraseña: <span className="font-semibold text-white/70">12345</span>
-          </p>
+          <div className="mt-4 rounded-xl bg-white/5 p-3 text-xs leading-relaxed text-white/50">
+            <p className="font-semibold text-white/70">Acceso demo</p>
+            <p>
+              Admin: <span className="font-semibold text-white/80">admin@estabgroup.com</span> ·{" "}
+              <span className="font-semibold text-white/80">password</span>
+            </p>
+            <p>
+              Ventas: <span className="font-semibold text-white/80">ventas@estabgroup.com</span> ·{" "}
+              <span className="font-semibold text-white/80">password</span>
+            </p>
+          </div>
         </form>
 
         <a

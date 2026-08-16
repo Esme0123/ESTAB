@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, Outlet } from "react-router-dom"
-import { MessageCircle, LogOut, ExternalLink } from "lucide-react"
+import { MessageCircle, LogOut, ExternalLink, ShieldCheck } from "lucide-react"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import AdminPanel from "./components/AdminPanel"
@@ -9,8 +9,9 @@ import Home from "./pages/Home"
 import Nosotros from "./pages/Nosotros"
 import CatalogPage from "./pages/CatalogPage"
 import Contacto from "./pages/Contacto"
-import { PRODUCTS, buildGeneralWhatsAppUrl } from "./data/mockProducts"
-import { isAuthenticated, logout } from "./lib/auth"
+import { buildGeneralWhatsAppUrl } from "./data/mockProducts"
+import { isAuthenticated, logout, getStoredUser } from "./lib/auth"
+import { api, mockProductos } from "./services/api"
 
 const WA_FAB_URL = buildGeneralWhatsAppUrl()
 
@@ -38,6 +39,7 @@ function PublicLayout({ products }) {
 
 function AdminHeader() {
   const navigate = useNavigate()
+  const user = getStoredUser()
   const handleLogout = () => {
     logout()
     navigate("/admin/login", { replace: true })
@@ -63,9 +65,16 @@ function AdminHeader() {
         </Link>
 
         <nav className="hidden flex-1 justify-center lg:flex">
-          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-brand-green">
-            Panel de Administración
-          </span>
+          {user ? (
+            <span className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold text-brand-green">
+              <ShieldCheck className="h-4 w-4" />
+              {user.nombre} · {user.rol}
+            </span>
+          ) : (
+            <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-brand-green">
+              Panel de Administración
+            </span>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -90,6 +99,22 @@ function AdminHeader() {
 }
 
 function ProtectedAdmin({ products, setProducts }) {
+  const user = getStoredUser()
+
+  useEffect(() => {
+    let active = true
+    api
+      .getProductos()
+      .then((list) => {
+        // Con token válido la API incluye el precio referencial interno.
+        if (active && list.length > 0) setProducts(list)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [setProducts])
+
   if (!isAuthenticated()) {
     return <Navigate to="/admin/login" replace />
   }
@@ -98,16 +123,29 @@ function ProtectedAdmin({ products, setProducts }) {
     <div className="flex min-h-screen flex-col bg-slate-50">
       <AdminHeader />
       <main className="flex-1">
-        <AdminPanel products={products} setProducts={setProducts} />
+        <AdminPanel products={products} setProducts={setProducts} user={user} />
       </main>
     </div>
   )
 }
 
 function App() {
-  const [products, setProducts] = useState(() =>
-    PRODUCTS.map((p) => ({ ...p, estado: p.estado || "activo" }))
-  )
+  const [products, setProducts] = useState(() => mockProductos())
+
+  useEffect(() => {
+    let active = true
+    api
+      .getProductos()
+      .then((list) => {
+        if (active && list.length > 0) setProducts(list)
+      })
+      .catch(() => {
+        // Si el backend no está disponible, se mantienen los productos mock.
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <BrowserRouter>

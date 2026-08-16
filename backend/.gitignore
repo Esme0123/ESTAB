@@ -1,0 +1,3 @@
+# Uploads de imágenes
+uploads/*
+!uploads/.gitkeep

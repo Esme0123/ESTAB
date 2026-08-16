@@ -1,6 +1,6 @@
 export const CATEGORIES = [
   {
-    id: "equipamiento-medico",
+    id: 1,
     nombre: "Equipamiento Médico",
     descripcion: "Equipos de diagnóstico y atención para clínicas y hospitales",
     emoji: "🏥",
@@ -11,7 +11,7 @@ export const CATEGORIES = [
       "https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=800&q=60",
   },
   {
-    id: "mobiliario-laboratorio",
+    id: 2,
     nombre: "Mobiliario de Laboratorio y Clínica",
     descripcion: "Camillas, vitrinas, sillas ergonómicas y mobiliario sanitario",
     emoji: "🧪",
@@ -22,7 +22,7 @@ export const CATEGORIES = [
       "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=60",
   },
   {
-    id: "insumos-medicos",
+    id: 3,
     nombre: "Insumos Médicos",
     descripcion: "Descartables, kits de esterilización y bioseguridad",
     emoji: "💉",
@@ -33,7 +33,7 @@ export const CATEGORIES = [
       "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=800&q=60",
   },
   {
-    id: "material-corporativo",
+    id: 4,
     nombre: "Material Corporativo y Limpieza",
     descripcion: "Papelería, escritorio y productos de higiene para empresas",
     emoji: "🧼",
@@ -49,10 +49,15 @@ export const PRODUCTS = [
   {
     id: 1,
     nombre: "Camilla de Examen Médico",
-    categoria: "mobiliario-laboratorio",
+    categoria_id: 2,
     descripcion:
       "Camilla de exploración con colchoneta acolchada para consultorios y centros de salud.",
-    imagen_url: "https://picsum.photos/seed/estab-camilla/800/600",
+    precio_referencial: 2450,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-camilla/800/600",
+      "https://picsum.photos/seed/estab-camilla-2/800/600",
+    ],
     especificaciones: [
       "Colchoneta acolchada lavable",
       "Estructura de acero cromado",
@@ -63,10 +68,15 @@ export const PRODUCTS = [
   {
     id: 2,
     nombre: "Mesa de Exploración Ginecológica",
-    categoria: "mobiliario-laboratorio",
+    categoria_id: 2,
     descripcion:
       "Mesa de exploración con respaldos regulables para consulta ginecológica.",
-    imagen_url: "https://picsum.photos/seed/estab-mesa/800/600",
+    precio_referencial: 3800,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-mesa/800/600",
+      "https://picsum.photos/seed/estab-mesa-2/800/600",
+    ],
     especificaciones: [
       "Respaldo y pierneras regulables",
       "Tapizado en polipiel lavable",
@@ -77,10 +87,15 @@ export const PRODUCTS = [
   {
     id: 3,
     nombre: "Vitrina de Laboratorio",
-    categoria: "mobiliario-laboratorio",
+    categoria_id: 2,
     descripcion:
       "Vitrina metálica con puertas de vidrio para almacenar reactivos e insumos.",
-    imagen_url: "https://picsum.photos/seed/estab-vitrina/800/600",
+    precio_referencial: 2950,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-vitrina/800/600",
+      "https://picsum.photos/seed/estab-vitrina-2/800/600",
+    ],
     especificaciones: [
       "Puertas corredizas de vidrio",
       "Bandejas de acero inoxidable",
@@ -91,10 +106,15 @@ export const PRODUCTS = [
   {
     id: 4,
     nombre: "Silla Ergonómica Médica",
-    categoria: "mobiliario-laboratorio",
+    categoria_id: 2,
     descripcion:
       "Silla de trabajo ergonómica con soporte lumbar para personal de salud.",
-    imagen_url: "https://picsum.photos/seed/estab-silla/800/600",
+    precio_referencial: 890,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-silla/800/600",
+      "https://picsum.photos/seed/estab-silla-2/800/600",
+    ],
     especificaciones: [
       "Respaldo de malla transpirable",
       "Soporte lumbar ajustable",
@@ -105,10 +125,14 @@ export const PRODUCTS = [
   {
     id: 5,
     nombre: "Estetoscopio Profesional",
-    categoria: "equipamiento-medico",
+    categoria_id: 1,
     descripcion: "Estetoscopio de alta precisión para profesionales de la salud.",
-    imagen_url:
+    precio_referencial: 540,
+    estado: "activo",
+    imagenes: [
       "https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=800&q=60",
+      "https://picsum.photos/seed/estab-esteto-2/800/600",
+    ],
     especificaciones: [
       "Tubo de PVC premium",
       "Campana dual 52/35 mm",
@@ -119,10 +143,15 @@ export const PRODUCTS = [
   {
     id: 6,
     nombre: "Baumanómetro Aneroide",
-    categoria: "equipamiento-medico",
+    categoria_id: 1,
     descripcion:
       "Tensiómetro aneroide con estuche para control de presión arterial.",
-    imagen_url: "https://picsum.photos/seed/estab-baumanometro/800/600",
+    precio_referencial: 320,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-baumanometro/800/600",
+      "https://picsum.photos/seed/estab-baumanometro-2/800/600",
+    ],
     especificaciones: [
       "Manómetro calibrado",
       "Brazalete adulto universal",
@@ -133,10 +162,15 @@ export const PRODUCTS = [
   {
     id: 7,
     nombre: "Termómetro Digital Infrarrojo",
-    categoria: "equipamiento-medico",
+    categoria_id: 1,
     descripcion:
       "Termómetro de frente sin contacto para toma de temperatura por infrarrojo.",
-    imagen_url: "https://picsum.photos/seed/estab-termometro/800/600",
+    precio_referencial: 210,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-termometro/800/600",
+      "https://picsum.photos/seed/estab-termometro-2/800/600",
+    ],
     especificaciones: [
       "Lectura en 1 segundo",
       "Modo frente y objeto",
@@ -147,10 +181,15 @@ export const PRODUCTS = [
   {
     id: 8,
     nombre: "Lámpara de Examen",
-    categoria: "equipamiento-medico",
+    categoria_id: 1,
     descripcion:
       "Lámpara de exploración con cabezal regulable para consultorios y clínicas.",
-    imagen_url: "https://picsum.photos/seed/estab-lampara/800/600",
+    precio_referencial: 760,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-lampara/800/600",
+      "https://picsum.photos/seed/estab-lampara-2/800/600",
+    ],
     especificaciones: [
       "Base con ruedas",
       "Brazo articulado",
@@ -161,10 +200,15 @@ export const PRODUCTS = [
   {
     id: 9,
     nombre: "Kit de Esterilización",
-    categoria: "insumos-medicos",
+    categoria_id: 3,
     descripcion:
       "Set completo para esterilización y desinfección de instrumental médico.",
-    imagen_url: "https://picsum.photos/seed/estab-esterilizacion/800/600",
+    precio_referencial: 450,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-esterilizacion/800/600",
+      "https://picsum.photos/seed/estab-esterilizacion-2/800/600",
+    ],
     especificaciones: [
       "Desinfectante de alto nivel",
       "Contenedor hermético",
@@ -175,10 +219,15 @@ export const PRODUCTS = [
   {
     id: 10,
     nombre: "Guantes y Mascarillas Descartables",
-    categoria: "insumos-medicos",
+    categoria_id: 3,
     descripcion:
       "Kit de bioseguridad con guantes de nitrilo y mascarillas desechables.",
-    imagen_url: "https://picsum.photos/seed/estab-bioseguridad/800/600",
+    precio_referencial: 180,
+    estado: "activo",
+    imagenes: [
+      "https://picsum.photos/seed/estab-bioseguridad/800/600",
+      "https://picsum.photos/seed/estab-bioseguridad-2/800/600",
+    ],
     especificaciones: [
       "Guantes de nitrilo (100 u)",
       "Mascarillas quirúrgicas (50 u)",
@@ -189,11 +238,15 @@ export const PRODUCTS = [
   {
     id: 11,
     nombre: "Kit de Material de Escritorio",
-    categoria: "material-corporativo",
+    categoria_id: 4,
     descripcion:
       "Kit completo de papelería y útiles para equipos de oficina.",
-    imagen_url:
+    precio_referencial: 260,
+    estado: "activo",
+    imagenes: [
       "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=60",
+      "https://picsum.photos/seed/estab-escritorio-2/800/600",
+    ],
     especificaciones: [
       "Resmas A4 - 1000 hojas",
       "Archivadores colgantes",
@@ -204,11 +257,15 @@ export const PRODUCTS = [
   {
     id: 12,
     nombre: "Kit de Limpieza y Bioseguridad",
-    categoria: "material-corporativo",
+    categoria_id: 4,
     descripcion:
       "Desinfectantes y productos de higiene para oficinas, clínicas e industria.",
-    imagen_url:
+    precio_referencial: 340,
+    estado: "activo",
+    imagenes: [
       "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=800&q=60",
+      "https://picsum.photos/seed/estab-limpieza-2/800/600",
+    ],
     especificaciones: [
       "Desinfectante galón 5L",
       "Alcohol al 70%",
@@ -230,5 +287,10 @@ export const buildWhatsAppUrl = (producto) => {
 export const buildGeneralWhatsAppUrl = () => {
   const mensaje =
     "Hola, deseo más información sobre sus productos y servicios de equipamiento médico e insumos."
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+}
+
+export const buildQuoteWhatsAppUrl = (producto) => {
+  const mensaje = `Cotización Estab Group: ${producto.nombre} - Precio estimado: ${producto.precio_referencial} Bs. ¿Desea coordinar la entrega?`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
 }

@@ -1,81 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams, useOutletContext } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, Eye, X, PackageSearch, Search } from "lucide-react"
+import { MessageCircle, Eye, PackageSearch, Search, ImageOff } from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl } from "../data/mockProducts"
-
-function ProductModal({ product, onClose }) {
-  if (!product) return null
-  const cat = CATEGORIES.find((c) => c.id === product.categoria)
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        transition={{ duration: 0.25 }}
-        className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-navy shadow transition hover:bg-white"
-          aria-label="Cerrar"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <div className="relative h-60 sm:h-72">
-          <img
-            src={product.imagen_url}
-            alt={product.nombre}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
-          <span
-            className={`absolute bottom-4 left-4 rounded-full px-3 py-1 text-xs font-bold ${cat?.colorFondo} ${cat?.colorTexto}`}
-          >
-            {cat?.emoji} {cat?.nombre}
-          </span>
-        </div>
-
-        <div className="p-6 sm:p-8">
-          <h3 className="text-2xl font-extrabold text-navy">{product.nombre}</h3>
-          <p className="mt-3 text-slate-600">{product.descripcion}</p>
-
-          <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-navy">
-            Especificaciones
-          </h4>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {product.especificaciones.map((spec) => (
-              <li
-                key={spec}
-                className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600"
-              >
-                <span className="h-2 w-2 rounded-full bg-brand-green" />
-                {spec}
-              </li>
-            ))}
-          </ul>
-
-          <a
-            href={buildWhatsAppUrl(product)}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/30 transition hover:bg-brand-green-dark"
-          >
-            <MessageCircle className="h-5 w-5" />
-            Cotizar por WhatsApp
-          </a>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
+import ProductDetailModal from "../components/ProductDetailModal"
 
 function CatalogPage() {
   const { products } = useOutletContext()
@@ -100,15 +28,16 @@ function CatalogPage() {
   }
 
   const catName = activeCategory
-    ? CATEGORIES.find((c) => c.id === activeCategory)?.nombre
+    ? CATEGORIES.find((c) => String(c.id) === activeCategory)?.nombre
     : null
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
       if (p.estado === "inactivo") return false
-      const matchesCategory = !activeCategory || p.categoria === activeCategory
+      const matchesCategory =
+        !activeCategory || String(p.categoria_id) === activeCategory
       const q = searchTerm.toLowerCase().trim()
-      const cat = CATEGORIES.find((c) => c.id === p.categoria)
+      const cat = CATEGORIES.find((c) => c.id === p.categoria_id)
       const matchesSearch =
         !q ||
         p.nombre.toLowerCase().includes(q) ||
@@ -166,9 +95,9 @@ function CatalogPage() {
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => handleCategory(cat.id)}
+            onClick={() => handleCategory(String(cat.id))}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              activeCategory === cat.id
+              activeCategory === String(cat.id)
                 ? "bg-navy text-white shadow-lg shadow-navy/20"
                 : "bg-white text-navy ring-1 ring-navy/10 hover:bg-navy/5"
             }`}
@@ -194,7 +123,7 @@ function CatalogPage() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {filtered.map((product) => {
-              const cat = CATEGORIES.find((c) => c.id === product.categoria)
+              const cat = CATEGORIES.find((c) => c.id === product.categoria_id)
               return (
                 <motion.article
                   key={product.id}
@@ -205,13 +134,19 @@ function CatalogPage() {
                   transition={{ duration: 0.35 }}
                   className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-1 hover:shadow-xl"
                 >
-                  <div className="relative h-44 overflow-hidden">
-                    <img
-                      src={product.imagen_url}
-                      alt={product.nombre}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
+                  <div className="relative h-44 overflow-hidden bg-slate-100">
+                    {product.imagenes?.[0] ? (
+                      <img
+                        src={product.imagenes[0]}
+                        alt={product.nombre}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-slate-300">
+                        <ImageOff className="h-10 w-10" />
+                      </span>
+                    )}
                     <span
                       className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-bold ${cat?.colorFondo} ${cat?.colorTexto}`}
                     >
@@ -252,7 +187,7 @@ function CatalogPage() {
       )}
 
       <AnimatePresence>
-        {selected && <ProductModal product={selected} onClose={() => setSelected(null)} />}
+        {selected && <ProductDetailModal product={selected} onClose={() => setSelected(null)} />}
       </AnimatePresence>
     </section>
   )
