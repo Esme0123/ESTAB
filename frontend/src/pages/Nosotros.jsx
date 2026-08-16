@@ -48,6 +48,15 @@ function Nosotros() {
   return (
     <>
       <section className="relative overflow-hidden bg-navy py-20 text-white">
+        <motion.img
+          src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1600&q=70"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute inset-0 bg-indigo-950/80" />
         <div className="pointer-events-none absolute inset-0 opacity-20">
           <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-green blur-3xl" />
           <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-pulse blur-3xl" />

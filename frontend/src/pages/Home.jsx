@@ -2,6 +2,7 @@ import { ShieldCheck, Truck, Headset, MessageCircle, ChevronRight } from "lucide
 import { motion } from "framer-motion"
 import Hero from "../components/Hero"
 import CategoryGrid from "../components/CategoryGrid"
+import { buildGeneralWhatsAppUrl } from "../data/mockProducts"
 
 const WHY_ITEMS = [
   {
@@ -24,9 +25,7 @@ const WHY_ITEMS = [
   },
 ]
 
-const CTA_WA_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
-  "Hola, deseo una cotización rápida de equipamiento médico e insumos."
-)}`
+const CTA_WA_URL = buildGeneralWhatsAppUrl()
 
 function WhyChooseUs() {
   return (

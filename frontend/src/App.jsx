@@ -9,12 +9,10 @@ import Home from "./pages/Home"
 import Nosotros from "./pages/Nosotros"
 import CatalogPage from "./pages/CatalogPage"
 import Contacto from "./pages/Contacto"
-import { PRODUCTS } from "./data/mockProducts"
+import { PRODUCTS, buildGeneralWhatsAppUrl } from "./data/mockProducts"
 import { isAuthenticated, logout } from "./lib/auth"
 
-const WA_FAB_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
-  "Hola, deseo más información sobre sus soluciones."
-)}`
+const WA_FAB_URL = buildGeneralWhatsAppUrl()
 
 function PublicLayout({ products }) {
   return (

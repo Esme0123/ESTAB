@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Phone, Mail, MapPin, Send, MessageCircle, User, AtSign, Smartphone } from "lucide-react"
-
-const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER
+import { Phone, Mail, MapPin, Send, User, AtSign, Smartphone, MessageCircle } from "lucide-react"
+import { WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
 
 const INFO_CARDS = [
   {
@@ -17,16 +16,14 @@ const INFO_CARDS = [
     titulo: "Correo electrónico",
     valor: "estabgroup@gmail.com",
     detalle: "Respondemos en un plazo máximo de 24 horas",
-    href: "mailto:estabgroup@gmail.com",
+    href: `mailto:${EMAIL_CONTACT}`,
   },
   {
     icon: MapPin,
     titulo: "Dirección",
     valor: "Ciudad Satélite C. Fernando Caballero # 1158",
     detalle: "El Alto, Bolivia",
-    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      "Ciudad Satélite C. Fernando Caballero 1158, El Alto, Bolivia"
-    )}`,
+    href: "https://maps.google.com/?q=Ciudad+Satelite+Fernando+Caballero+1158+El+Alto",
   },
 ]
 
@@ -50,8 +47,18 @@ function Contacto() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const texto = `Hola, soy ${form.nombre}.\nCorreo: ${form.correo}\nTeléfono: ${form.telefono}\n\nMensaje: ${form.mensaje}`
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`, "_blank")
+    const asunto = `Consulta desde la web - ${form.nombre}`
+    const cuerpo = [
+      `Nombre: ${form.nombre}`,
+      `Correo: ${form.correo}`,
+      `Teléfono: ${form.telefono}`,
+      "",
+      "Mensaje:",
+      form.mensaje,
+    ].join("\n")
+    window.location.href = `mailto:${EMAIL_CONTACT}?subject=${encodeURIComponent(
+      asunto
+    )}&body=${encodeURIComponent(cuerpo)}`
     setEnviado(true)
     setTimeout(() => setEnviado(false), 6000)
   }
@@ -62,6 +69,15 @@ function Contacto() {
   return (
     <>
       <section className="relative overflow-hidden bg-navy py-20 text-white">
+        <motion.img
+          src="https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=1600&q=70"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute inset-0 bg-indigo-950/80" />
         <div className="pointer-events-none absolute inset-0 opacity-20">
           <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-green blur-3xl" />
           <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-pulse blur-3xl" />
@@ -83,11 +99,11 @@ function Contacto() {
             variants={item}
             className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl"
           >
-            Hablemos sobre tu proyecto
+            Solicita una Cotización o Asesoramiento Especializado
           </motion.h1>
           <motion.p variants={item} className="mx-auto mt-5 max-w-2xl text-lg text-white/70">
             Cuéntanos qué necesitas y un asesor de Estab Group te contactará a la
-            brevedad con la mejor solución.
+            brevedad con la mejor solución para tu clínica, laboratorio o empresa.
           </motion.p>
         </motion.div>
       </section>
@@ -105,7 +121,7 @@ function Contacto() {
               Formulario de consulta
             </motion.h2>
             <motion.p variants={item} className="mt-1 text-sm text-slate-500">
-              Completa tus datos y presiona enviar para continuar por WhatsApp.
+              Completa tus datos y presiona enviar para abrir tu cliente de correo.
             </motion.p>
 
             <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
@@ -177,7 +193,7 @@ function Contacto() {
                   className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3.5 font-bold text-white shadow-lg shadow-brand-green/30 transition hover:bg-brand-green-dark"
                 >
                   <Send className="h-5 w-5" />
-                  Enviar consulta por WhatsApp
+                  Enviar consulta por correo
                 </button>
 
                 {enviado && (
@@ -187,7 +203,7 @@ function Contacto() {
                     className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand-green/10 px-4 py-3 text-sm font-semibold text-brand-green-dark"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    Abriendo WhatsApp con tu consulta...
+                    Abriendo tu cliente de correo con tu consulta...
                   </motion.p>
                 )}
               </motion.div>

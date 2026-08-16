@@ -218,8 +218,17 @@ export const PRODUCTS = [
   },
 ]
 
+export const WHATSAPP_NUMBER = "59171814954"
+export const EMAIL_CONTACT = "estabgroup@gmail.com"
+export const ADDRESS_FULL = "Ciudad Satélite C. Fernando Caballero # 1158, El Alto, Bolivia"
+
 export const buildWhatsAppUrl = (producto) => {
-  const numero = import.meta.env.VITE_WHATSAPP_NUMBER
   const mensaje = `Hola, deseo consultar por el producto: ${producto.nombre}`
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+}
+
+export const buildGeneralWhatsAppUrl = () => {
+  const mensaje =
+    "Hola, deseo más información sobre sus productos y servicios de equipamiento médico e insumos."
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
 }

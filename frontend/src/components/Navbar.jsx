@@ -13,7 +13,7 @@ import {
   ArrowRight,
   MessageCircle,
 } from "lucide-react"
-import { CATEGORIES } from "../data/mockProducts"
+import { CATEGORIES, buildGeneralWhatsAppUrl } from "../data/mockProducts"
 
 const CATEGORY_ICONS = {
   "equipamiento-medico": Stethoscope,
@@ -22,11 +22,14 @@ const CATEGORY_ICONS = {
   "material-corporativo": SprayCan,
 }
 
+const WA_CONTACT_URL = buildGeneralWhatsAppUrl()
+
 const NAV_LINKS = [
   { label: "Inicio", to: "/" },
   { label: "Nosotros", to: "/nosotros" },
-  { label: "Contáctenos", to: "/contactenos" },
 ]
+
+const NAV_TAIL = [{ label: "Contáctenos", to: "/contactenos" }]
 
 function NavItem({ to, label, isActive, onClick }) {
   return (
@@ -83,20 +86,12 @@ function Navbar() {
     <header className="sticky top-0 z-50 bg-navy shadow-lg shadow-navy/20">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
         <Link to="/" onClick={goTo} className="flex shrink-0 items-center gap-3 text-left">
-          <span className="flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md">
+          <span className="flex items-center justify-center rounded-2xl bg-white p-1.5 shadow-md">
             <img
               src="/logo_nombre_2.jpeg"
               alt="Logo Estab Group S.R.L."
-              className="h-9 w-auto rounded-lg object-contain"
+              className="h-14 w-auto rounded-xl object-contain"
             />
-          </span>
-          <span className="hidden leading-tight md:block">
-            <span className="block text-base font-extrabold tracking-wide text-white">
-              ESTAB GROUP
-            </span>
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-green">
-              S.R.L.
-            </span>
           </span>
         </Link>
 
@@ -182,13 +177,15 @@ function Navbar() {
               )}
             </AnimatePresence>
           </div>
+
+          {NAV_TAIL.map(({ label, to }) => (
+            <NavItem key={to} to={to} label={label} />
+          ))}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
           <a
-            href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
-              "Hola, deseo más información sobre sus soluciones."
-            )}`}
+            href={WA_CONTACT_URL}
             target="_blank"
             rel="noreferrer"
             className="hidden items-center gap-2 rounded-full border border-brand-green/30 bg-brand-green/10 px-4 py-2 text-sm font-semibold text-brand-green transition hover:bg-brand-green hover:text-white lg:flex"

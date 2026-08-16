@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Navigate, Link, useNavigate } from "react-router-dom"
 import { Lock, User, LogIn, ArrowLeft, MessageCircle } from "lucide-react"
 import { isAuthenticated, login } from "../lib/auth"
+import { WHATSAPP_NUMBER } from "../data/mockProducts"
 
 function Login() {
   const navigate = useNavigate()
@@ -108,7 +109,7 @@ function Login() {
         </form>
 
         <a
-          href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
             "Hola, necesito ayuda con el acceso al panel de administración."
           )}`}
           target="_blank"

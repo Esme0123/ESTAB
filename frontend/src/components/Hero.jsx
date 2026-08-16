@@ -1,9 +1,11 @@
 import { MessageCircle, ChevronRight, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
+import { buildGeneralWhatsAppUrl } from "../data/mockProducts"
 
-const WA_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
-  "Hola, deseo más información sobre sus soluciones."
-)}`
+const WA_URL = buildGeneralWhatsAppUrl()
+
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1600&q=70"
 
 const container = {
   hidden: {},
@@ -20,6 +22,15 @@ const item = {
 function Hero() {
   return (
     <section className="relative overflow-hidden bg-navy text-white">
+      <motion.img
+        src={HERO_IMAGE}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+        animate={{ scale: [1, 1.08, 1] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div className="absolute inset-0 bg-indigo-950/80" />
       <div className="pointer-events-none absolute inset-0 opacity-20">
         <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-green blur-3xl" />
         <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-pulse blur-3xl" />

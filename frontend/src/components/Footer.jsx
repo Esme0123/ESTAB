@@ -1,6 +1,8 @@
 import { Phone, Mail, MapPin, MessageCircle, Lock } from "lucide-react"
 import { Link } from "react-router-dom"
-import { CATEGORIES } from "../data/mockProducts"
+import { CATEGORIES, WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
+
+const WA_CONTACT_URL = `https://wa.me/${WHATSAPP_NUMBER}`
 
 const SOCIAL = [
   {
@@ -26,11 +28,11 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
         <div>
           <Link to="/" className="inline-block">
-            <span className="flex w-fit items-center justify-center rounded-xl bg-white p-2 shadow-md">
+            <span className="flex w-fit items-center justify-center rounded-2xl bg-white p-2 shadow-md">
               <img
                 src="/logo_nombre_2.jpeg"
                 alt="Logo Estab Group S.R.L."
-                className="h-14 w-auto rounded-lg object-contain"
+                className="h-20 w-auto rounded-xl object-contain"
               />
             </span>
           </Link>
@@ -102,41 +104,58 @@ function Footer() {
             <li className="flex items-start gap-3">
               <Phone className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
               <div>
-                <p className="font-semibold">+591 71814954</p>
+                <a
+                  href="tel:+59171814954"
+                  className="font-semibold transition hover:text-brand-green"
+                >
+                  +591 71814954
+                </a>
                 <p className="text-xs text-white/50">Teléfono / WhatsApp</p>
               </div>
             </li>
             <li className="flex items-start gap-3">
               <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
               <div>
-                <p className="font-semibold">estabgroup@gmail.com</p>
+                <a
+                  href={`mailto:${EMAIL_CONTACT}`}
+                  className="font-semibold transition hover:text-brand-green"
+                >
+                  estabgroup@gmail.com
+                </a>
                 <p className="text-xs text-white/50">Correo electrónico</p>
               </div>
             </li>
             <li className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
               <div>
-                <p className="font-semibold">
+                <a
+                  href="https://maps.google.com/?q=Ciudad+Satelite+Fernando+Caballero+1158+El+Alto"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold transition hover:text-brand-green"
+                >
                   Ciudad Satélite C. Fernando Caballero # 1158
-                </p>
+                </a>
                 <p className="text-xs text-white/50">El Alto, Bolivia</p>
               </div>
             </li>
           </ul>
 
-          <Link
-            to="/contactenos"
+          <a
+            href={WA_CONTACT_URL}
+            target="_blank"
+            rel="noreferrer"
             className="mt-6 flex w-fit items-center justify-center gap-2 rounded-full bg-brand-green px-5 py-2.5 font-semibold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
           >
             <MessageCircle className="h-4 w-4" />
             Escríbenos por WhatsApp
-          </Link>
+          </a>
         </div>
       </div>
 
       <div className="flex flex-col items-center justify-center gap-3 border-t border-white/10 px-4 py-4 text-xs text-white/40 sm:flex-row sm:justify-between sm:px-6">
         <p>
-          © {new Date().getFullYear()} {import.meta.env.VITE_APP_TITLE} · Todos los
+          © {new Date().getFullYear()} Estab Group S.R.L. · Todos los
           derechos reservados
         </p>
         <Link
