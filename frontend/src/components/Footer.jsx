@@ -2,8 +2,6 @@ import { Phone, Mail, MapPin, MessageCircle, Lock } from "lucide-react"
 import { Link } from "react-router-dom"
 import { CATEGORIES } from "../data/mockProducts"
 
-const WHATSAPP_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}`
-
 const SOCIAL = [
   {
     name: "Facebook",
@@ -22,21 +20,20 @@ const SOCIAL = [
   },
 ]
 
-function Footer({ onSelectCategory }) {
-  const handleLine = (id) => {
-    onSelectCategory(id)
-    document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" })
-  }
-
+function Footer() {
   return (
     <footer className="bg-navy text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
         <div>
-          <img
-            src="/logo_nombre_2.jpeg"
-            alt="Logo Estab Group S.R.L."
-            className="h-16 w-auto rounded-xl"
-          />
+          <Link to="/" className="inline-block">
+            <span className="flex w-fit items-center justify-center rounded-xl bg-white p-2 shadow-md">
+              <img
+                src="/logo_nombre_2.jpeg"
+                alt="Logo Estab Group S.R.L."
+                className="h-14 w-auto rounded-lg object-contain"
+              />
+            </span>
+          </Link>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">
             Proveemos equipamiento médico, mobiliario de laboratorio y clínica,
             insumos médicos y material corporativo y de limpieza para clínicas,
@@ -62,6 +59,42 @@ function Footer({ onSelectCategory }) {
         </div>
 
         <div className="md:justify-self-center">
+          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/50">
+            Enlaces
+          </h3>
+          <ul className="space-y-2.5 text-sm text-white/80">
+            {[
+              { label: "Inicio", to: "/" },
+              { label: "Nosotros", to: "/nosotros" },
+              { label: "Catálogo de productos", to: "/catalogo" },
+              { label: "Contáctenos", to: "/contactenos" },
+            ].map(({ label, to }) => (
+              <li key={to}>
+                <Link to={to} className="rounded-lg px-1 py-0.5 transition hover:text-brand-green">
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mb-3 mt-8 text-sm font-bold uppercase tracking-wider text-white/50">
+            Líneas de negocio
+          </h3>
+          <ul className="space-y-2 text-sm text-white/80">
+            {CATEGORIES.map((cat) => (
+              <li key={cat.id}>
+                <Link
+                  to={`/catalogo?categoria=${cat.id}`}
+                  className="rounded-lg px-1 py-0.5 transition hover:text-brand-green"
+                >
+                  {cat.emoji} {cat.nombre}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="md:justify-self-end">
           <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/50">
             Contacto
           </h3>
@@ -90,33 +123,14 @@ function Footer({ onSelectCategory }) {
               </div>
             </li>
           </ul>
-        </div>
 
-        <div className="md:justify-self-end">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/50">
-            Líneas de negocio
-          </h3>
-          <ul className="space-y-2 text-sm text-white/80">
-            {CATEGORIES.map((cat) => (
-              <li key={cat.id}>
-                <button
-                  onClick={() => handleLine(cat.id)}
-                  className="rounded-lg px-1 py-0.5 text-left transition hover:text-brand-green"
-                >
-                  {cat.emoji} {cat.nombre}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            to="/contactenos"
             className="mt-6 flex w-fit items-center justify-center gap-2 rounded-full bg-brand-green px-5 py-2.5 font-semibold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
           >
             <MessageCircle className="h-4 w-4" />
-            Cotiza por WhatsApp
-          </a>
+            Escríbenos por WhatsApp
+          </Link>
         </div>
       </div>
 
@@ -126,7 +140,7 @@ function Footer({ onSelectCategory }) {
           derechos reservados
         </p>
         <Link
-          to="/admin"
+          to="/admin/login"
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-white/50 transition hover:bg-white/10 hover:text-white"
         >
           <Lock className="h-3 w-3" />

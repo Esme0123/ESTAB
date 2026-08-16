@@ -1,62 +1,32 @@
 import { useState } from "react"
-import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, Outlet } from "react-router-dom"
 import { MessageCircle, LogOut, ExternalLink } from "lucide-react"
 import Navbar from "./components/Navbar"
-import Hero from "./components/Hero"
-import CategoryGrid from "./components/CategoryGrid"
-import Catalog from "./components/Catalog"
+import Footer from "./components/Footer"
 import AdminPanel from "./components/AdminPanel"
 import Login from "./components/Login"
-import Footer from "./components/Footer"
-import { PRODUCTS, buildWhatsAppUrl } from "./data/mockProducts"
+import Home from "./pages/Home"
+import Nosotros from "./pages/Nosotros"
+import CatalogPage from "./pages/CatalogPage"
+import Contacto from "./pages/Contacto"
+import { PRODUCTS } from "./data/mockProducts"
 import { isAuthenticated, logout } from "./lib/auth"
 
-const FAB_PRODUCT = {
-  nombre: "servicios",
-  descripcion: "",
-  especificaciones: [],
-}
+const WA_FAB_URL = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+  "Hola, deseo más información sobre sus soluciones."
+)}`
 
-function PublicSite({ products }) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeCategory, setActiveCategory] = useState(null)
-
-  const scrollToCatalog = () => {
-    document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  const handleSelectCategory = (id) => {
-    setActiveCategory(id)
-    if (id) scrollToCatalog()
-  }
-
-  const handleHome = () => {
-    setActiveCategory(null)
-    setSearchTerm("")
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
+function PublicLayout({ products }) {
   return (
-    <>
-      <Navbar onSelectCategory={handleSelectCategory} onHome={handleHome} />
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
       <main className="flex-1">
-        <Hero onBrowse={scrollToCatalog} />
-        <CategoryGrid
-          activeCategory={activeCategory}
-          onSelectCategory={handleSelectCategory}
-        />
-        <Catalog
-          products={products.filter((p) => p.estado !== "inactivo")}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          activeCategory={activeCategory}
-          onSelectCategory={handleSelectCategory}
-        />
+        <Outlet context={{ products }} />
       </main>
-      <Footer onSelectCategory={handleSelectCategory} />
+      <Footer />
 
       <a
-        href={buildWhatsAppUrl(FAB_PRODUCT)}
+        href={WA_FAB_URL}
         target="_blank"
         rel="noreferrer"
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-green text-white shadow-xl shadow-brand-green/40 transition hover:scale-110 hover:bg-brand-green-dark"
@@ -64,7 +34,7 @@ function PublicSite({ products }) {
       >
         <MessageCircle className="h-7 w-7" />
       </a>
-    </>
+    </div>
   )
 }
 
@@ -79,7 +49,13 @@ function AdminHeader() {
     <header className="sticky top-0 z-50 bg-navy shadow-lg shadow-navy/20">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center gap-3 text-left">
-          <img src="/logo-estab.svg" alt="Logo Estab Group" className="h-11 w-11 rounded-xl" />
+          <span className="flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md">
+            <img
+              src="/logo_nombre_2.jpeg"
+              alt="Logo Estab Group"
+              className="h-9 w-auto rounded-lg object-contain"
+            />
+          </span>
           <span className="hidden leading-tight sm:block">
             <span className="block text-lg font-bold tracking-wide text-white">ESTAB GROUP</span>
             <span className="block text-[11px] font-medium uppercase tracking-[0.2em] text-brand-green">
@@ -138,10 +114,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<PublicSite products={products} />}
-        />
+        <Route element={<PublicLayout products={products} />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/contactenos" element={<Contacto />} />
+        </Route>
+
         <Route path="/admin/login" element={<Login />} />
         <Route
           path="/admin"

@@ -7,6 +7,8 @@ export const CATEGORIES = [
     colorBorde: "border-pulse",
     colorFondo: "bg-pulse/10",
     colorTexto: "text-pulse",
+    imagen:
+      "https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=800&q=60",
   },
   {
     id: "mobiliario-laboratorio",
@@ -16,6 +18,8 @@ export const CATEGORIES = [
     colorBorde: "border-navy-soft",
     colorFondo: "bg-navy-soft/10",
     colorTexto: "text-navy",
+    imagen:
+      "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=60",
   },
   {
     id: "insumos-medicos",
@@ -25,6 +29,8 @@ export const CATEGORIES = [
     colorBorde: "border-brand-green",
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
+    imagen:
+      "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=800&q=60",
   },
   {
     id: "material-corporativo",
@@ -34,6 +40,8 @@ export const CATEGORIES = [
     colorBorde: "border-brand-green",
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
+    imagen:
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=60",
   },
 ]
 
