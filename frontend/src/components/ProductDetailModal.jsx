@@ -1,12 +1,22 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl } from "../data/mockProducts"
 
+const findCat = (id) => CATEGORIES.find((c) => String(c.id) === String(id))
+
 function ProductDetailModal({ product, onClose }) {
   const images = product.imagenes?.length ? product.imagenes : [null]
   const [index, setIndex] = useState(0)
-  const cat = CATEGORIES.find((c) => c.id === product.categoria_id)
+  const cat = findCat(product.categoria_id)
+
+  useEffect(() => {
+    if (images.length <= 1) return
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [images.length])
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length)
   const next = () => setIndex((i) => (i + 1) % images.length)
@@ -21,7 +31,7 @@ function ProductDetailModal({ product, onClose }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
         transition={{ duration: 0.25 }}
-        className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+        className="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -32,7 +42,7 @@ function ProductDetailModal({ product, onClose }) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative h-64 sm:h-80">
+        <div className="relative h-56 shrink-0 sm:h-72">
           <AnimatePresence mode="wait">
             <motion.img
               key={index}
@@ -79,13 +89,13 @@ function ProductDetailModal({ product, onClose }) {
         </div>
 
         {images.length > 1 && (
-          <div className="flex justify-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+          <div className="flex shrink-0 justify-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
             {images.map((src, i) => (
               <button
                 key={`${src}-${i}`}
                 onClick={() => setIndex(i)}
                 aria-label={`Ver imagen ${i + 1}`}
-                className={`h-14 w-16 overflow-hidden rounded-lg ring-2 transition ${
+                className={`h-14 w-16 shrink-0 overflow-hidden rounded-lg ring-2 transition ${
                   i === index
                     ? "ring-brand-green"
                     : "ring-transparent opacity-60 hover:opacity-100"
@@ -103,7 +113,7 @@ function ProductDetailModal({ product, onClose }) {
           </div>
         )}
 
-        <div className="max-h-[45vh] overflow-y-auto p-6 sm:p-8">
+        <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8">
           <h3 className="text-2xl font-extrabold text-navy">{product.nombre}</h3>
           <p className="mt-3 text-slate-600">{product.descripcion}</p>
 

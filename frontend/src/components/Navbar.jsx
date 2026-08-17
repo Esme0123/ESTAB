@@ -16,10 +16,10 @@ import {
 import { CATEGORIES, buildGeneralWhatsAppUrl } from "../data/mockProducts"
 
 const CATEGORY_ICONS = {
-  "equipamiento-medico": Stethoscope,
-  "mobiliario-laboratorio": FlaskConical,
-  "insumos-medicos": Syringe,
-  "material-corporativo": SprayCan,
+  1: Stethoscope,
+  2: FlaskConical,
+  3: Syringe,
+  4: SprayCan,
 }
 
 const WA_CONTACT_URL = buildGeneralWhatsAppUrl()
@@ -149,8 +149,12 @@ function Navbar() {
                           onClick={goTo}
                           className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-navy"
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green-dark transition group-hover:bg-brand-green group-hover:text-white">
-                            <Icon className="h-5 w-5" />
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green/10 text-lg transition group-hover:bg-brand-green">
+                            {Icon ? (
+                              <Icon className="h-5 w-5 text-brand-green-dark group-hover:text-white" />
+                            ) : (
+                              <span className="group-hover:text-white">{cat.emoji}</span>
+                            )}
                           </span>
                           <span>
                             <span className="block text-sm font-bold text-navy transition group-hover:text-white">

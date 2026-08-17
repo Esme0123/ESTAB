@@ -16,6 +16,7 @@ import { motion } from "framer-motion"
 import { CATEGORIES } from "../data/mockProducts"
 import { api } from "../services/api"
 import CotizadorInterno from "./CotizadorInterno"
+import SuccessModal from "./SuccessModal"
 
 const EMPTY_FORM = {
   id: null,
@@ -105,11 +106,18 @@ function ProductManager({ products, setProducts }) {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [notice, setNotice] = useState("")
+  const [successMsg, setSuccessMsg] = useState("")
+  const [filterCat, setFilterCat] = useState("all")
 
-  const flash = (msg) => {
+  const showError = (msg) => {
     setNotice(msg)
-    setTimeout(() => setNotice(""), 4000)
+    setTimeout(() => setNotice(""), 5000)
   }
+
+  const filteredProducts =
+    filterCat === "all"
+      ? products
+      : products.filter((p) => String(p.categoria_id) === String(filterCat))
 
   const resetForm = () => {
     setForm(EMPTY_FORM)
@@ -164,7 +172,7 @@ function ProductManager({ products, setProducts }) {
       const data = await api.uploadImage(file)
       setForm((f) => ({ ...f, imagenes: [...f.imagenes, data.url] }))
     } catch (err) {
-      flash(err.message || "Error al subir la imagen.")
+      showError(err.message || "Error al subir la imagen.")
     } finally {
       setUploading(false)
       e.target.value = ""
@@ -174,7 +182,7 @@ function ProductManager({ products, setProducts }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.nombre.trim() || !form.descripcion.trim()) {
-      flash("Nombre y descripción son obligatorios.")
+      showError("Nombre y descripción son obligatorios.")
       return
     }
 
@@ -194,15 +202,15 @@ function ProductManager({ products, setProducts }) {
         setProducts((prev) =>
           prev.map((p) => (p.id === updated.id ? updated : p))
         )
-        flash("Producto actualizado correctamente.")
+        setSuccessMsg("El producto se actualizó correctamente.")
       } else {
         const created = await api.createProducto(payload)
         setProducts((prev) => [created, ...prev])
-        flash("Producto creado correctamente.")
+        setSuccessMsg("El producto se creó correctamente.")
       }
       resetForm()
     } catch (err) {
-      flash(err.message || "Error al guardar el producto.")
+      showError(err.message || "Error al guardar el producto.")
     } finally {
       setSaving(false)
     }
@@ -223,8 +231,13 @@ function ProductManager({ products, setProducts }) {
       setProducts((prev) =>
         prev.map((item) => (item.id === p.id ? updated : item))
       )
+      setSuccessMsg(
+        nuevoEstado === "activo"
+          ? "El producto se activó correctamente."
+          : "El producto se desactivó correctamente."
+      )
     } catch (err) {
-      flash(err.message || "Error al cambiar el estado.")
+      showError(err.message || "Error al cambiar el estado.")
     }
   }
 
@@ -234,9 +247,9 @@ function ProductManager({ products, setProducts }) {
       await api.deleteProducto(p.id)
       setProducts((prev) => prev.filter((item) => item.id !== p.id))
       if (form.id === p.id) resetForm()
-      flash("Producto eliminado.")
+      setSuccessMsg("El producto se eliminó correctamente.")
     } catch (err) {
-      flash(err.message || "Error al eliminar el producto.")
+      showError(err.message || "Error al eliminar el producto.")
     }
   }
 
@@ -435,42 +448,79 @@ function ProductManager({ products, setProducts }) {
       </form>
 
       <div className="overflow-hidden rounded-2xl bg-white shadow-card">
-        {products.length === 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+          <div>
+            <h4 className="text-sm font-bold text-navy">Listado de productos</h4>
+            <p className="text-xs text-slate-400">
+              {filteredProducts.length} de {products.length} productos
+            </p>
+          </div>
+          <select
+            value={filterCat}
+            onChange={(e) => setFilterCat(e.target.value)}
+            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+            aria-label="Filtrar por categoría"
+          >
+            <option value="all">Todas las categorías</option>
+            {CATEGORIES.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.emoji} {cat.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center">
             <Inbox className="mb-4 h-12 w-12 text-slate-300" />
             <p className="font-bold text-navy">No hay productos</p>
-            <p className="text-sm text-slate-500">Agrega tu primer producto.</p>
+            <p className="text-sm text-slate-500">
+              {filterCat === "all"
+                ? "Agrega tu primer producto."
+                : "No hay productos en esta categoría."}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-navy text-white">
                 <tr>
+                  <th className="px-5 py-3 font-semibold">Imagen</th>
                   <th className="px-5 py-3 font-semibold">Producto</th>
                   <th className="px-5 py-3 font-semibold">Categoría</th>
-                  <th className="px-5 py-3 font-semibold">Precio (Bs)</th>
+                  <th className="px-5 py-3 font-semibold">Precio Referencial (Bs)</th>
                   <th className="px-5 py-3 font-semibold">Estado</th>
                   <th className="px-5 py-3 text-right font-semibold">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {products.map((p) => {
+                {filteredProducts.map((p) => {
                   const inactivo = p.estado === "inactivo"
                   return (
                     <tr key={p.id} className={`transition ${inactivo ? "opacity-50" : "hover:bg-slate-50"}`}>
                       <td className="px-5 py-3">
+                        <span className="block h-11 w-11 overflow-hidden rounded-lg bg-slate-100">
+                          {p.imagenes?.[0] ? (
+                            <img
+                              src={p.imagenes[0]}
+                              alt={p.nombre}
+                              className="h-full w-full object-cover"
+                              onError={(e) => (e.currentTarget.style.display = "none")}
+                            />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center text-xs text-slate-300">
+                              —
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={p.imagenes?.[0]}
-                            alt={p.nombre}
-                            className="h-10 w-10 rounded-lg object-cover"
-                            onError={(e) => (e.currentTarget.style.display = "none")}
-                          />
                           <div>
                             <p className={`font-semibold text-navy ${inactivo ? "line-through" : ""}`}>
                               {p.nombre}
                             </p>
-                            <p className="max-w-[240px] truncate text-xs text-slate-400">
+                            <p className="max-w-[220px] truncate text-xs text-slate-400">
                               {p.descripcion}
                             </p>
                           </div>
@@ -535,6 +585,12 @@ function ProductManager({ products, setProducts }) {
           </div>
         )}
       </div>
+
+      <SuccessModal
+        open={!!successMsg}
+        message={successMsg}
+        onClose={() => setSuccessMsg("")}
+      />
     </div>
   )
 }

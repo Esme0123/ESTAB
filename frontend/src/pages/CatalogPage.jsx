@@ -27,17 +27,17 @@ function CatalogPage() {
     }
   }
 
-  const catName = activeCategory
-    ? CATEGORIES.find((c) => String(c.id) === activeCategory)?.nombre
-    : null
+  const findCat = (id) => CATEGORIES.find((c) => String(c.id) === String(id))
+
+  const catName = activeCategory ? findCat(activeCategory)?.nombre : null
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
       if (p.estado === "inactivo") return false
       const matchesCategory =
-        !activeCategory || String(p.categoria_id) === activeCategory
+        !activeCategory || String(p.categoria_id) === String(activeCategory)
       const q = searchTerm.toLowerCase().trim()
-      const cat = CATEGORIES.find((c) => c.id === p.categoria_id)
+      const cat = findCat(p.categoria_id)
       const matchesSearch =
         !q ||
         p.nombre.toLowerCase().includes(q) ||
@@ -123,7 +123,8 @@ function CatalogPage() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {filtered.map((product) => {
-              const cat = CATEGORIES.find((c) => c.id === product.categoria_id)
+              const cat = findCat(product.categoria_id)
+              const firstImage = product.imagenes?.[0]
               return (
                 <motion.article
                   key={product.id}
@@ -135,9 +136,9 @@ function CatalogPage() {
                   className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="relative h-44 overflow-hidden bg-slate-100">
-                    {product.imagenes?.[0] ? (
+                    {firstImage ? (
                       <img
-                        src={product.imagenes[0]}
+                        src={firstImage}
                         alt={product.nombre}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         loading="lazy"
