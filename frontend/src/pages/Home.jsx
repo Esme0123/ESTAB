@@ -47,7 +47,7 @@ function WhyChooseUs() {
           transition={{ duration: 0.5 }}
           className="mb-10 text-center"
         >
-          <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-600">
+          <span className="inline-block rounded-full border border-brand-green/20 bg-brand-green/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-green">
             Nuestro valor
           </span>
           <h2 className="mt-4 text-3xl font-extrabold text-navy sm:text-4xl">¿Por qué elegirnos?</h2>
@@ -65,9 +65,9 @@ function WhyChooseUs() {
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
               whileHover={{ y: -8 }}
-              className="group rounded-3xl border border-slate-200/80 bg-white/70 p-8 text-center shadow-xl shadow-indigo-950/5 backdrop-blur-md transition-shadow hover:border-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/10"
+              className="group rounded-3xl border border-slate-200/80 bg-white/70 p-8 text-center shadow-xl shadow-navy/5 backdrop-blur-md transition-shadow hover:border-brand-green/25 hover:shadow-2xl hover:shadow-brand-green/10"
             >
-              <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20 transition duration-300 group-hover:bg-emerald-500 group-hover:text-white">
+              <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-green/10 text-brand-green ring-1 ring-brand-green/20 transition duration-300 group-hover:bg-brand-green group-hover:text-white">
                 <Icon className="h-8 w-8" />
               </span>
               <h3 className="text-xl font-bold text-navy">{titulo}</h3>
@@ -88,12 +88,12 @@ function CtaBanner() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.6 }}
-        className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 px-6 py-14 text-center text-white shadow-2xl shadow-indigo-950/20 ring-1 ring-white/10 sm:px-12"
+        className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-b from-[#1A1C38] via-[#20234A] to-[#2A2E66] px-6 py-14 text-center text-white shadow-2xl shadow-[#1A1C38]/20 ring-1 ring-white/10 sm:px-12"
       >
         <div className="pointer-events-none absolute inset-0 opacity-40">
-          <div className="absolute -left-16 -top-16 h-64 w-64 rounded-full bg-emerald-500 blur-3xl" />
-          <div className="absolute -bottom-20 -right-10 h-72 w-72 rounded-full bg-cyan-500 blur-3xl" />
-          <div className="absolute left-1/3 top-1/2 h-56 w-56 rounded-full bg-indigo-600 blur-3xl" />
+          <div className="absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#3BB54A] blur-3xl" />
+          <div className="absolute -bottom-20 -right-10 h-72 w-72 rounded-full bg-[#2E315C] blur-3xl" />
+          <div className="absolute left-1/3 top-1/2 h-56 w-56 rounded-full bg-[#3BB54A]/40 blur-3xl" />
         </div>
 
         <div className="relative">
@@ -110,10 +110,10 @@ function CtaBanner() {
             href={CTA_WA_URL}
             target="_blank"
             rel="noreferrer"
-            className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-7 py-3.5 font-bold text-white shadow-xl shadow-emerald-500/40 transition hover:shadow-emerald-400/60"
+            className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-[#3BB54A] px-7 py-3.5 font-bold text-white shadow-xl shadow-[#3BB54A]/40 transition hover:bg-[#2E9E3C] hover:shadow-[#3BB54A]/60"
           >
             <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-            <span className="pointer-events-none absolute -inset-1 rounded-full bg-emerald-400/40 opacity-0 blur-md transition group-hover:animate-pulse group-hover:opacity-100" />
+            <span className="pointer-events-none absolute -inset-1 rounded-full bg-[#3BB54A]/40 opacity-0 blur-md transition group-hover:animate-pulse group-hover:opacity-100" />
             <MessageCircle className="h-5 w-5" />
             Cotizar por WhatsApp
             <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

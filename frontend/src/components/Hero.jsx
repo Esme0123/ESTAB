@@ -77,7 +77,7 @@ function HeroCarousel() {
               transition={{ delay: 0.25, duration: 0.4 }}
               className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/20 backdrop-blur-md"
             >
-              <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+              <Sparkles className="h-3.5 w-3.5 text-[#3BB54A]" />
               {SLIDES[index].caption}
             </motion.span>
           </motion.div>
@@ -105,7 +105,7 @@ function HeroCarousel() {
               onClick={() => goTo(i)}
               aria-label={`Ir al slide ${i + 1}`}
               className={`h-2 rounded-full transition-all duration-300 ${
-                i === index ? "w-6 bg-emerald-400" : "w-2 bg-white/40 hover:bg-white/70"
+                i === index ? "w-6 bg-[#3BB54A]" : "w-2 bg-white/40 hover:bg-white/70"
               }`}
             />
           ))}
@@ -118,7 +118,7 @@ function HeroCarousel() {
         transition={{ delay: 0.6, duration: 0.5 }}
         className="absolute -bottom-6 -left-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-white shadow-xl shadow-black/30 backdrop-blur-md"
       >
-        <p className="text-2xl font-extrabold text-emerald-300">+500</p>
+        <p className="text-2xl font-extrabold text-[#3BB54A]">+500</p>
         <p className="text-xs font-medium text-white/70">Empresas atendidas</p>
       </motion.div>
 
@@ -126,7 +126,7 @@ function HeroCarousel() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.75, duration: 0.5 }}
-        className="absolute -top-4 -right-4 flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 shadow-lg shadow-black/20 backdrop-blur-md"
+        className="absolute -top-4 -right-4 flex items-center gap-1.5 rounded-full border border-[#3BB54A]/40 bg-[#3BB54A]/15 px-3 py-1.5 text-xs font-semibold text-[#3BB54A] shadow-lg shadow-black/20 backdrop-blur-md"
       >
         <BadgeCheck className="h-4 w-4" />
         Calidad certificada
@@ -149,11 +149,11 @@ const item = {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white">
+    <section className="relative overflow-hidden bg-[#1A1C38] text-white">
       <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-emerald-500 blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-cyan-500 blur-3xl" />
-        <div className="absolute left-1/2 top-1/3 h-64 w-64 rounded-full bg-indigo-600 blur-3xl" />
+        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#3BB54A] blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-[#2E315C] blur-3xl" />
+        <div className="absolute left-1/2 top-1/3 h-64 w-64 rounded-full bg-[#23255A] blur-3xl" />
       </div>
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-10 px-4 py-20 text-center sm:px-6 lg:flex-row lg:text-left">
@@ -165,7 +165,7 @@ function Hero() {
         >
           <motion.span
             variants={item}
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-300"
+            className="inline-flex items-center gap-2 rounded-full border border-[#3BB54A]/40 bg-[#3BB54A]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#3BB54A]"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Equipamiento médico e insumos
@@ -176,7 +176,7 @@ function Hero() {
             className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl"
           >
             Equipamiento para tu{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+            <span className="text-[#3BB54A]">
               Clínica o Laboratorio
             </span>
           </motion.h1>
@@ -199,10 +199,10 @@ function Hero() {
                   .getElementById("categorias")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
-              className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-500/40 transition hover:shadow-emerald-400/60"
+              className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-[#3BB54A] px-6 py-3 font-semibold text-white shadow-lg shadow-[#3BB54A]/40 transition hover:bg-[#2E9E3C] hover:shadow-xl hover:shadow-[#3BB54A]/60"
             >
               <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              <span className="pointer-events-none absolute -inset-1 rounded-full bg-emerald-400/40 opacity-0 blur-md transition group-hover:animate-pulse group-hover:opacity-100" />
+              <span className="pointer-events-none absolute -inset-1 rounded-full bg-[#3BB54A]/40 opacity-0 blur-md transition group-hover:animate-pulse group-hover:opacity-100" />
               Ver nuestro catálogo
               <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </motion.button>
@@ -210,9 +210,9 @@ function Hero() {
               href={WA_URL}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 font-semibold text-white backdrop-blur-sm transition hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-cyan-200"
+              className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 font-semibold text-white backdrop-blur-sm transition hover:border-[#3BB54A]/60 hover:bg-[#3BB54A]/10 hover:text-[#3BB54A]"
             >
-              <MessageCircle className="h-5 w-5 text-emerald-300" />
+              <MessageCircle className="h-5 w-5 text-[#3BB54A]" />
               Contacto directo
             </a>
           </motion.div>
@@ -224,7 +224,7 @@ function Hero() {
             {["🇧🇴 La Paz - Bolivia", "✅ Proveedor certificado", "📦 Entregas en todo el país"].map(
               (tag) => (
                 <span key={tag} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#3BB54A]" />
                   {tag}
                 </span>
               )
@@ -243,8 +243,8 @@ function Hero() {
       </div>
 
       <div className="relative flex items-center justify-center gap-2 border-t border-white/10 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/50">
-        Innovación <span className="text-emerald-400">·</span> Tecnología{" "}
-        <span className="text-cyan-400">·</span> Confianza
+        Innovación <span className="text-[#3BB54A]">·</span> Tecnología{" "}
+        <span className="text-[#3BB54A]">·</span> Confianza
       </div>
     </section>
   )

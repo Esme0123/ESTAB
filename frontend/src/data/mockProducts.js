@@ -8,7 +8,7 @@ export const CATEGORIES = [
     colorFondo: "bg-pulse/10",
     colorTexto: "text-pulse",
     imagen:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ export const CATEGORIES = [
     colorFondo: "bg-navy-soft/10",
     colorTexto: "text-navy",
     imagen:
-      "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ export const CATEGORIES = [
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
     imagen:
-      "https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 4,
@@ -41,7 +41,7 @@ export const CATEGORIES = [
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
     imagen:
-      "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80",
   },
 ]
 

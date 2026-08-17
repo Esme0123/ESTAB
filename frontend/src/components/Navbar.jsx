@@ -37,7 +37,7 @@ function NavItem({ to, label, isActive, onClick }) {
       to={to}
       onClick={onClick}
       className={`relative rounded-lg px-4 py-2 text-sm font-semibold transition ${
-        isActive ? "text-white" : "text-white/70 hover:text-white"
+        isActive ? "text-brand-green" : "text-slate-100 hover:text-brand-green"
       }`}
     >
       {label}
@@ -92,24 +92,19 @@ function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-slate-800/50 bg-slate-900/80 shadow-lg shadow-black/20 backdrop-blur-md"
-          : "border-b border-transparent bg-slate-950/50 backdrop-blur-sm"
+      className={`sticky top-0 z-50 bg-[#1A1C38] transition-all duration-300 ${
+        scrolled ? "border-b border-white/10 shadow-lg shadow-black/20" : "border-b border-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-        <Link
-          to="/"
-          onClick={goTo}
-          className="group relative flex shrink-0 items-center gap-3 text-left"
-        >
-          <span className="pointer-events-none absolute -inset-2 -z-10 rounded-3xl bg-emerald-400/20 opacity-0 blur-xl transition duration-500 group-hover:opacity-70" />
-          <img
-            src="/logo_nombre_2_transparent.png"
-            alt="Logo Estab Group S.R.L."
-            className="h-12 w-auto object-contain drop-shadow-[0_4px_16px_rgba(16,185,129,0.35)] transition duration-300 md:h-14"
-          />
+        <Link to="/" onClick={goTo} className="flex shrink-0 items-center text-left">
+          <span className="rounded-xl bg-white/95 px-3 py-1.5 shadow-sm transition-all hover:shadow">
+            <img
+              src="/logo_nombre_2.jpeg"
+              alt="Logo Estab Group S.R.L."
+              className="h-10 w-auto object-contain md:h-12"
+            />
+          </span>
         </Link>
 
         <nav className="ml-4 hidden items-center gap-1 lg:flex">
@@ -127,7 +122,7 @@ function Navbar() {
               to="/catalogo"
               className={({ isActive }) =>
                 `flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  isActive ? "text-white" : "text-white/70 hover:text-white"
+                  isActive ? "text-brand-green" : "text-slate-100 hover:text-brand-green"
                 }`
               }
             >
@@ -147,10 +142,10 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 12, scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  className="absolute left-1/2 top-full z-50 mt-3 w-[420px] -translate-x-1/2 rounded-3xl border border-white/10 bg-slate-900/95 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                  className="absolute left-1/2 top-full z-50 mt-3 w-[420px] -translate-x-1/2 rounded-3xl border border-white/10 bg-[#1A1C38]/95 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">
                       Categorías
                     </span>
                     <span className="h-px flex-1 bg-white/10" />
@@ -252,7 +247,7 @@ function Navbar() {
                   onClick={goTo}
                   className={({ isActive }) =>
                     `rounded-lg px-3 py-2 text-sm font-semibold ${
-                      isActive ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10"
+                      isActive ? "bg-white/10 text-brand-green" : "text-slate-100 hover:bg-white/10 hover:text-brand-green"
                     }`
                   }
                 >
@@ -265,7 +260,7 @@ function Navbar() {
                 onClick={goTo}
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 text-sm font-semibold ${
-                    isActive ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10"
+                    isActive ? "bg-white/10 text-brand-green" : "text-slate-100 hover:bg-white/10 hover:text-brand-green"
                   }`
                 }
               >
@@ -278,7 +273,7 @@ function Navbar() {
                     key={cat.id}
                     to={`/catalogo?categoria=${cat.id}`}
                     onClick={goTo}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-100 hover:bg-white/10 hover:text-brand-green"
                   >
                     <span className="text-base">{cat.emoji}</span>
                     {cat.nombre}

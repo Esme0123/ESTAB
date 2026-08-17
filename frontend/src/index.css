@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-navy: #1e1b4b;
-  --color-navy-light: #242258;
-  --color-navy-soft: #37347a;
-  --color-brand-green: #22c55e;
-  --color-brand-green-dark: #38a169;
+  --color-navy: #1a1c38;
+  --color-navy-light: #23255a;
+  --color-navy-soft: #2e315c;
+  --color-brand-green: #3bb54a;
+  --color-brand-green-dark: #2e9e3c;
   --color-pulse: #f59e0b;
 
   --font-sans: "Segoe UI", system-ui, ui-sans-serif, Arial, sans-serif;
 
-  --shadow-card: 0 10px 30px -10px rgb(30 27 75 / 0.18);
+  --shadow-card: 0 10px 30px -10px rgb(26 28 56 / 0.18);
 
   --animate-fade-up: fade-up 0.5s ease-out both;
   --animate-fade-in: fade-in 0.4s ease-out both;
@@ -48,7 +48,7 @@ body {
 }
 
 ::selection {
-  background-color: #22c55e;
+  background-color: #3bb54a;
   color: #ffffff;
 }
 
@@ -61,6 +61,6 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e1b4b;
+  background: #1a1c38;
   border-radius: 8px;
 }
