@@ -36,6 +36,24 @@
   }
 }
 
+@keyframes border-run {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.running-gradient-border {
+  background: linear-gradient(90deg, #22c55e, #eab308, #06b6d4, #22c55e);
+  background-size: 200% 200%;
+  animation: border-run 3s linear infinite;
+}
+
 html {
   scroll-behavior: smooth;
 }

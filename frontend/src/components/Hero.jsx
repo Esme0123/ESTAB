@@ -50,8 +50,10 @@ function HeroCarousel() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-2xl shadow-black/40">
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+      <div className="relative h-full w-full overflow-hidden rounded-3xl p-[2px] shadow-2xl shadow-black/40">
+        <div className="absolute inset-0 rounded-3xl running-gradient-border opacity-0 transition-opacity duration-300 group-hover/carousel:opacity-100" />
+        <div className="relative h-full w-full overflow-hidden rounded-3xl">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
           <motion.div
             key={index}
             custom={direction}
@@ -110,6 +112,7 @@ function HeroCarousel() {
             />
           ))}
         </div>
+        </div>
       </div>
 
       <motion.div
@@ -158,11 +161,12 @@ function Hero() {
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-10 px-4 py-20 text-center sm:px-6 lg:flex-row lg:text-left">
         <motion.div
-          className="flex-1"
+          className="relative flex-1"
           variants={container}
           initial="hidden"
           animate="show"
         >
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.14),rgba(245,158,11,0.08)_45%,transparent_70%)] blur-2xl" />
           <motion.span
             variants={item}
             className="inline-flex items-center gap-2 rounded-full border border-[#3BB54A]/40 bg-[#3BB54A]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#3BB54A]"
@@ -176,8 +180,12 @@ function Hero() {
             className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl"
           >
             Equipamiento para tu{" "}
-            <span className="text-[#3BB54A]">
-              Clínica o Laboratorio
+            <span className="text-emerald-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+              Clínica
+            </span>{" "}
+            <span className="text-slate-200">o</span>{" "}
+            <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+              Laboratorio
             </span>
           </motion.h1>
 

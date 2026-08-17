@@ -19,7 +19,7 @@ export const CATEGORIES = [
     colorFondo: "bg-navy-soft/10",
     colorTexto: "text-navy",
     imagen:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 3,
