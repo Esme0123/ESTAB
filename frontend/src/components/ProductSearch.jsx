@@ -53,7 +53,7 @@ function ProductSearch({
     <div ref={boxRef} className={`relative ${className}`}>
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#3BB54A] drop-shadow-[0_0_6px_rgba(59,181,74,0.5)]" />
           <input
             type="text"
             value={value}
@@ -63,7 +63,7 @@ function ProductSearch({
             }}
             onFocus={() => value.trim() && setOpen(true)}
             placeholder={placeholder}
-            className="w-full rounded-full border border-slate-200 bg-white py-3.5 pl-12 pr-11 text-sm text-navy shadow-card outline-none transition placeholder:text-slate-400 focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
+            className="w-full rounded-2xl border-2 border-emerald-500/30 bg-white/90 py-3.5 pl-12 pr-11 text-sm text-navy shadow-lg backdrop-blur-md outline-none transition placeholder:text-slate-400 focus:border-[#3BB54A] focus:ring-2 focus:ring-[#3BB54A]/20"
           />
           {value && (
             <button

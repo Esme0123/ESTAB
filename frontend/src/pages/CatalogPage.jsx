@@ -25,6 +25,14 @@ const CATEGORY_STYLES = {
   },
 }
 
+const FILTER_STYLES = {
+  all: "border-[#EAB308] bg-[#1A1C38] text-white shadow-lg shadow-[#EAB308]/25",
+  1: "border-amber-300 bg-amber-400 text-slate-900 shadow-lg shadow-amber-400/40",
+  2: "border-cyan-300 bg-cyan-400 text-slate-900 shadow-lg shadow-cyan-400/40",
+  3: "border-emerald-300 bg-emerald-400 text-slate-900 shadow-lg shadow-emerald-400/40",
+  4: "border-indigo-300 bg-indigo-400 text-white shadow-lg shadow-indigo-400/40",
+}
+
 function CatalogPage() {
   const { products } = useOutletContext()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -79,29 +87,41 @@ function CatalogPage() {
   const clearSelection = () => setSelectedProducts([])
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50/30">
-      <div className="mx-auto max-w-7xl px-4 pb-32 pt-10 sm:px-6">
+    <section className="min-h-screen bg-gradient-to-b from-[#1A1C38]/5 via-slate-100 to-emerald-50/20">
+      {/* Hero / Cabecera */}
+      <div className="relative overflow-hidden bg-[#1A1C38]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#3BB54A]/30 blur-3xl" />
+          <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-[#EAB308]/25 blur-3xl" />
+          <div className="absolute left-1/3 -top-10 h-56 w-56 rounded-full bg-[#06B6D4]/20 blur-3xl" />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="relative mx-auto max-w-7xl px-4 pb-24 pt-12 text-center sm:px-6"
         >
-          <h1 className="text-3xl font-extrabold text-navy sm:text-4xl">
-            Catálogo de Productos
+          <h1 className="text-3xl font-extrabold text-white sm:text-5xl">
+            Catálogo de{" "}
+            <span className="bg-gradient-to-r from-[#3BB54A] via-emerald-400 to-[#EAB308] bg-clip-text text-transparent">
+              Equipamiento e Insumos
+            </span>
           </h1>
-          <p className="mt-2 text-slate-500">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
             {catName
               ? `Mostrando productos de: ${catName}`
               : "Toda la gama de productos del rubro médico y laboratorio."}
           </p>
         </motion.div>
+      </div>
 
+      {/* Buscador y filtros */}
+      <div className="relative mx-auto max-w-7xl px-4 pb-32 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.1 }}
-          className="relative mb-6"
+          className="relative z-10 -mt-8 mb-6"
         >
           <ProductSearch
             products={products}
@@ -115,10 +135,10 @@ function CatalogPage() {
         <div className="mb-8 flex flex-wrap gap-2">
           <button
             onClick={() => handleCategory(null)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
               !activeCategory
-                ? "bg-navy text-white shadow-lg shadow-navy/20"
-                : "bg-white text-navy ring-1 ring-navy/10 hover:bg-navy/5"
+                ? FILTER_STYLES.all
+                : "border-transparent bg-white/80 text-navy ring-1 ring-navy/10 hover:bg-white"
             }`}
           >
             Todos
@@ -127,10 +147,10 @@ function CatalogPage() {
             <button
               key={cat.id}
               onClick={() => handleCategory(String(cat.id))}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
                 activeCategory === String(cat.id)
-                  ? "bg-navy text-white shadow-lg shadow-navy/20"
-                  : "bg-white text-navy ring-1 ring-navy/10 hover:bg-navy/5"
+                  ? FILTER_STYLES[cat.id] || FILTER_STYLES[3]
+                  : "border-transparent bg-white/80 text-navy ring-1 ring-navy/10 hover:bg-white"
               }`}
             >
               {cat.emoji} {cat.nombre}
