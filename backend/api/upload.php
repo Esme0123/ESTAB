@@ -44,7 +44,8 @@ if (!move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $filename)) {
 
 $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$publicPath = dirname($_SERVER['SCRIPT_NAME'], 2) . '/uploads/' . $filename;
+$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'], 2), '/');
+$publicPath = $basePath . '/uploads/' . $filename;
 
 jsonResponse([
     'url' => $scheme . '://' . $host . $publicPath,

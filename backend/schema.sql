@@ -2,11 +2,11 @@
 -- Estab Group S.R.L. - Esquema de Base de Datos (MySQL 8+)
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS estab_group
+CREATE DATABASE IF NOT EXISTS estab_group_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE estab_group;
+USE estab_group_db;
 
 -- ---------- Roles ----------
 CREATE TABLE IF NOT EXISTS roles (

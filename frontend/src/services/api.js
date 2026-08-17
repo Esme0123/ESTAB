@@ -1,7 +1,6 @@
 import { PRODUCTS } from "../data/mockProducts"
 
-export const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost/backend/api"
+export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost/backend/api"
 
 const TOKEN_KEY = "estab_admin_token"
 
