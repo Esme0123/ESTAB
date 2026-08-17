@@ -11,7 +11,7 @@ import CatalogPage from "./pages/CatalogPage"
 import Contacto from "./pages/Contacto"
 import { buildGeneralWhatsAppUrl } from "./data/mockProducts"
 import { isAuthenticated, logout, getStoredUser } from "./lib/auth"
-import { api, mockProductos } from "./services/api"
+import { api, mockProductos, BASE_URL } from "./services/api"
 
 const WA_FAB_URL = buildGeneralWhatsAppUrl()
 
@@ -134,6 +134,10 @@ function App() {
 
   useEffect(() => {
     let active = true
+
+    // Despertar el servidor de Render apenas el usuario abra la página.
+    fetch(`${BASE_URL}/ping.php`).catch(() => {})
+
     api
       .getProductos()
       .then((list) => {
