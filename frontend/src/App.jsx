@@ -49,9 +49,9 @@ function AdminHeader() {
     <header className="sticky top-0 z-50 bg-navy shadow-lg shadow-navy/20">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center gap-3 text-left">
-          <span className="flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md">
+          <span className="flex items-center justify-center rounded-xl bg-white/10 p-1.5 shadow-md backdrop-blur-sm">
             <img
-              src="/logo_nombre_2.jpeg"
+              src="/logo_nombre_2_transparent.png"
               alt="Logo Estab Group"
               className="h-12 w-auto rounded-lg object-contain md:h-14"
             />

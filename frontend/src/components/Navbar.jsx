@@ -55,8 +55,16 @@ function NavItem({ to, label, isActive, onClick }) {
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const dropdownRef = useRef(null)
   const closeTimer = useRef(null)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -83,16 +91,25 @@ function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-navy shadow-lg shadow-navy/20">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "border-b border-slate-800/50 bg-slate-900/80 shadow-lg shadow-black/20 backdrop-blur-md"
+          : "border-b border-transparent bg-slate-950/50 backdrop-blur-sm"
+      }`}
+    >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-        <Link to="/" onClick={goTo} className="flex shrink-0 items-center gap-3 text-left">
-          <span className="flex items-center justify-center rounded-2xl bg-white p-1.5 shadow-md">
-            <img
-              src="/logo_nombre_2.jpeg"
-              alt="Logo Estab Group S.R.L."
-              className="h-12 w-auto rounded-xl object-contain md:h-14"
-            />
-          </span>
+        <Link
+          to="/"
+          onClick={goTo}
+          className="group relative flex shrink-0 items-center gap-3 text-left"
+        >
+          <span className="pointer-events-none absolute -inset-2 -z-10 rounded-3xl bg-emerald-400/20 opacity-0 blur-xl transition duration-500 group-hover:opacity-70" />
+          <img
+            src="/logo_nombre_2_transparent.png"
+            alt="Logo Estab Group S.R.L."
+            className="h-12 w-auto object-contain drop-shadow-[0_4px_16px_rgba(16,185,129,0.35)] transition duration-300 md:h-14"
+          />
         </Link>
 
         <nav className="ml-4 hidden items-center gap-1 lg:flex">
@@ -130,13 +147,13 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 12, scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  className="absolute left-1/2 top-full z-50 mt-3 w-[420px] -translate-x-1/2 rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-navy/5"
+                  className="absolute left-1/2 top-full z-50 mt-3 w-[420px] -translate-x-1/2 rounded-3xl border border-white/10 bg-slate-900/95 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">
                       Categorías
                     </span>
-                    <span className="h-px flex-1 bg-slate-100" />
+                    <span className="h-px flex-1 bg-white/10" />
                   </div>
 
                   <div className="grid gap-1.5 sm:grid-cols-2">
@@ -147,20 +164,20 @@ function Navbar() {
                           key={cat.id}
                           to={`/catalogo?categoria=${cat.id}`}
                           onClick={goTo}
-                          className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-navy"
+                          className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-white/10"
                         >
                           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-green/10 text-lg transition group-hover:bg-brand-green">
                             {Icon ? (
-                              <Icon className="h-5 w-5 text-brand-green-dark group-hover:text-white" />
+                              <Icon className="h-5 w-5 text-brand-green group-hover:text-white" />
                             ) : (
                               <span className="group-hover:text-white">{cat.emoji}</span>
                             )}
                           </span>
                           <span>
-                            <span className="block text-sm font-bold text-navy transition group-hover:text-white">
+                            <span className="block text-sm font-bold text-white transition">
                               {cat.nombre}
                             </span>
-                            <span className="mt-0.5 block text-xs leading-snug text-slate-400 transition group-hover:text-white/60">
+                            <span className="mt-0.5 block text-xs leading-snug text-slate-400 transition group-hover:text-white/70">
                               {cat.descripcion}
                             </span>
                           </span>
@@ -172,7 +189,7 @@ function Navbar() {
                   <Link
                     to="/catalogo"
                     onClick={goTo}
-                    className="mt-4 flex items-center justify-center gap-2 rounded-full bg-navy px-5 py-2.5 text-sm font-bold text-white transition hover:bg-navy-soft"
+                    className="mt-4 flex items-center justify-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600"
                   >
                     Ver todo el catálogo
                     <ArrowRight className="h-4 w-4" />

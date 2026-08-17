@@ -8,7 +8,7 @@ export const CATEGORIES = [
     colorFondo: "bg-pulse/10",
     colorTexto: "text-pulse",
     imagen:
-      "https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=60",
   },
   {
     id: 2,
@@ -30,7 +30,7 @@ export const CATEGORIES = [
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
     imagen:
-      "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?auto=format&fit=crop&w=800&q=60",
   },
   {
     id: 4,
@@ -41,7 +41,7 @@ export const CATEGORIES = [
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
     imagen:
-      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=800&q=60",
   },
 ]
 

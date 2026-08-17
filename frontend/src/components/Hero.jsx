@@ -1,11 +1,139 @@
-import { MessageCircle, ChevronRight, Sparkles } from "lucide-react"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react"
+import { MessageCircle, ChevronRight, ChevronLeft, Sparkles, BadgeCheck } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 import { buildGeneralWhatsAppUrl } from "../data/mockProducts"
 
 const WA_URL = buildGeneralWhatsAppUrl()
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1600&q=70"
+const SLIDES = [
+  {
+    src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&q=70",
+    alt: "Equipos de diagnóstico y monitores médicos de última generación",
+    caption: "Diagnóstico de última generación",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&w=1200&q=70",
+    alt: "Laboratorio clínico moderno con microscopios e instrumental de alta precisión",
+    caption: "Laboratorio clínico de alta precisión",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=1200&q=70",
+    alt: "Quirófano y mobiliario clínico especializado en acero inoxidable",
+    caption: "Quirófano y mobiliario clínico",
+  },
+]
+
+const slideVariants = {
+  enter: (dir) => ({ opacity: 0, x: dir > 0 ? 90 : -90, scale: 1.03 }),
+  center: { opacity: 1, x: 0, scale: 1 },
+  exit: (dir) => ({ opacity: 0, x: dir > 0 ? -90 : 90, scale: 0.98 }),
+}
+
+function HeroCarousel() {
+  const [[index, direction], setSlide] = useState([0, 0])
+  const [paused, setPaused] = useState(false)
+
+  const paginate = (dir) =>
+    setSlide(([i]) => [(i + dir + SLIDES.length) % SLIDES.length, dir])
+
+  const goTo = (n) => setSlide(([i]) => [n, n > i ? 1 : -1])
+
+  useEffect(() => {
+    if (paused) return
+    const id = setInterval(() => paginate(1), 5000)
+    return () => clearInterval(id)
+  }, [paused])
+
+  return (
+    <div
+      className="group/carousel relative mx-auto aspect-square w-full max-w-md"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-2xl shadow-black/40">
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          <motion.div
+            key={index}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute inset-0"
+          >
+            <motion.img
+              src={SLIDES[index].src}
+              alt={SLIDES[index].alt}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              animate={{ scale: [1, 1.06] }}
+              transition={{ duration: 8, ease: "easeOut" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/10" />
+            <motion.span
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
+              className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/20 backdrop-blur-md"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+              {SLIDES[index].caption}
+            </motion.span>
+          </motion.div>
+        </AnimatePresence>
+
+        <button
+          onClick={() => paginate(-1)}
+          aria-label="Slide anterior"
+          className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white opacity-0 backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white/25 group-hover/carousel:opacity-100"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => paginate(1)}
+          aria-label="Slide siguiente"
+          className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white opacity-0 backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white/25 group-hover/carousel:opacity-100"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/15 bg-slate-950/40 px-3 py-1.5 backdrop-blur-md">
+          {SLIDES.map((slide, i) => (
+            <button
+              key={slide.src}
+              onClick={() => goTo(i)}
+              aria-label={`Ir al slide ${i + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === index ? "w-6 bg-emerald-400" : "w-2 bg-white/40 hover:bg-white/70"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+        className="absolute -bottom-6 -left-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-white shadow-xl shadow-black/30 backdrop-blur-md"
+      >
+        <p className="text-2xl font-extrabold text-emerald-300">+500</p>
+        <p className="text-xs font-medium text-white/70">Empresas atendidas</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.75, duration: 0.5 }}
+        className="absolute -top-4 -right-4 flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 shadow-lg shadow-black/20 backdrop-blur-md"
+      >
+        <BadgeCheck className="h-4 w-4" />
+        Calidad certificada
+      </motion.div>
+    </div>
+  )
+}
 
 const container = {
   hidden: {},
@@ -21,22 +149,14 @@ const item = {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-navy text-white">
-      <motion.img
-        src={HERO_IMAGE}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <div className="absolute inset-0 bg-indigo-950/80" />
-      <div className="pointer-events-none absolute inset-0 opacity-20">
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-green blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-pulse blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white">
+      <div className="pointer-events-none absolute inset-0 opacity-30">
+        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-emerald-500 blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-cyan-500 blur-3xl" />
+        <div className="absolute left-1/2 top-1/3 h-64 w-64 rounded-full bg-indigo-600 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 py-20 text-center sm:px-6 lg:flex-row lg:text-left">
+      <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-10 px-4 py-20 text-center sm:px-6 lg:flex-row lg:text-left">
         <motion.div
           className="flex-1"
           variants={container}
@@ -45,7 +165,7 @@ function Hero() {
         >
           <motion.span
             variants={item}
-            className="inline-flex items-center gap-2 rounded-full border border-brand-green/40 bg-brand-green/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-green"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-300"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Equipamiento médico e insumos
@@ -56,7 +176,7 @@ function Hero() {
             className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl"
           >
             Equipamiento para tu{" "}
-            <span className="bg-gradient-to-r from-brand-green to-pulse bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
               Clínica o Laboratorio
             </span>
           </motion.h1>
@@ -71,24 +191,28 @@ function Hero() {
             variants={item}
             className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:justify-start"
           >
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() =>
                 document
                   .getElementById("categorias")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
-              className="flex items-center gap-2 rounded-full bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/30 transition hover:bg-brand-green-dark"
+              className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-500/40 transition hover:shadow-emerald-400/60"
             >
+              <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+              <span className="pointer-events-none absolute -inset-1 rounded-full bg-emerald-400/40 opacity-0 blur-md transition group-hover:animate-pulse group-hover:opacity-100" />
               Ver nuestro catálogo
-              <ChevronRight className="h-5 w-5" />
-            </button>
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </motion.button>
             <a
               href={WA_URL}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 font-semibold text-white transition hover:border-pulse hover:bg-pulse/10"
+              className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 font-semibold text-white backdrop-blur-sm transition hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-cyan-200"
             >
-              <MessageCircle className="h-5 w-5 text-brand-green" />
+              <MessageCircle className="h-5 w-5 text-emerald-300" />
               Contacto directo
             </a>
           </motion.div>
@@ -100,7 +224,7 @@ function Hero() {
             {["🇧🇴 La Paz - Bolivia", "✅ Proveedor certificado", "📦 Entregas en todo el país"].map(
               (tag) => (
                 <span key={tag} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   {tag}
                 </span>
               )
@@ -112,31 +236,15 @@ function Hero() {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-          className="relative hidden flex-1 lg:block"
+          className="relative hidden flex-1 py-6 lg:block"
         >
-          <div className="relative mx-auto aspect-square w-full max-w-md">
-            <img
-              src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=60"
-              alt="Equipo trabajando con Estab Group"
-              className="h-full w-full rounded-3xl object-cover shadow-2xl"
-              loading="lazy"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-4 text-navy shadow-xl"
-            >
-              <p className="text-2xl font-extrabold text-brand-green-dark">+500</p>
-              <p className="text-xs font-medium text-slate-600">Empresas atendidas</p>
-            </motion.div>
-          </div>
+          <HeroCarousel />
         </motion.div>
       </div>
 
       <div className="relative flex items-center justify-center gap-2 border-t border-white/10 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/50">
-        Innovación <span className="text-brand-green">·</span> Tecnología{" "}
-        <span className="text-pulse">·</span> Confianza
+        Innovación <span className="text-emerald-400">·</span> Tecnología{" "}
+        <span className="text-cyan-400">·</span> Confianza
       </div>
     </section>
   )
