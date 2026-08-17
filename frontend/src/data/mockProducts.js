@@ -294,3 +294,14 @@ export const buildQuoteWhatsAppUrl = (producto) => {
   const mensaje = `Cotización Estab Group: ${producto.nombre} - Precio estimado: ${producto.precio_referencial} Bs. ¿Desea coordinar la entrega?`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
 }
+
+export const buildMultiQuoteWhatsAppUrl = (productos) => {
+  const lineas = productos
+    .map((p, i) => {
+      const cat = CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))
+      return `${i + 1}. ${p.nombre} (${cat?.nombre || "Sin categoría"})`
+    })
+    .join("\n")
+  const mensaje = `Hola Estab Group S.R.L., quisiera solicitar una cotización para los siguientes productos seleccionados de su catálogo web:\n${lineas}\nPor favor, quedo atento a su propuesta y disponibilidad.`
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+}
