@@ -3,14 +3,11 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Check,
   Power,
   Inbox,
-  Upload,
-  Loader2,
-  X,
   LayoutGrid,
   FileText,
+  Search,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CATEGORIES } from "../data/mockProducts"
@@ -18,16 +15,7 @@ import { api } from "../services/api"
 import CotizadorInterno from "./CotizadorInterno"
 import SuccessModal from "./SuccessModal"
 import ProductDetailModal from "./ProductDetailModal"
-
-const EMPTY_FORM = {
-  id: null,
-  nombre: "",
-  descripcion: "",
-  precio_referencial: "",
-  categoria_id: CATEGORIES[0].id,
-  imagenes: [],
-  especificaciones: [],
-}
+import ProductFormModal from "./ProductFormModal"
 
 function AdminPanel({ products, setProducts, user }) {
   const isAdmin = user?.rol === "Admin"
@@ -101,120 +89,48 @@ function AdminPanel({ products, setProducts, user }) {
 }
 
 function ProductManager({ products, setProducts }) {
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [newSpec, setNewSpec] = useState("")
-  const [newImageUrl, setNewImageUrl] = useState("")
-  const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [notice, setNotice] = useState("")
-  const [successMsg, setSuccessMsg] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
   const [filterCat, setFilterCat] = useState("all")
+  const [successMsg, setSuccessMsg] = useState("")
+  const [notice, setNotice] = useState("")
   const [preview, setPreview] = useState(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState(null)
 
   const showError = (msg) => {
     setNotice(msg)
     setTimeout(() => setNotice(""), 5000)
   }
 
-  const filteredProducts =
-    filterCat === "all"
-      ? products
-      : products.filter((p) => String(p.categoria_id) === String(filterCat))
+  const filteredProducts = products.filter((p) => {
+    if (filterCat !== "all" && String(p.categoria_id) !== String(filterCat)) return false
+    const q = searchTerm.trim().toLowerCase()
+    if (q && !p.nombre.toLowerCase().includes(q)) return false
+    return true
+  })
 
-  const resetForm = () => {
-    setForm(EMPTY_FORM)
-    setNewSpec("")
-    setNewImageUrl("")
+  const openCreate = () => {
+    setEditing(null)
+    setFormOpen(true)
   }
 
-  const startEdit = (p) => {
-    setForm({
-      id: p.id,
-      nombre: p.nombre,
-      descripcion: p.descripcion,
-      precio_referencial: String(p.precio_referencial ?? ""),
-      categoria_id: p.categoria_id,
-      imagenes: [...(p.imagenes || [])],
-      especificaciones: [...(p.especificaciones || [])],
-    })
-    window.scrollTo({ top: 0, behavior: "smooth" })
+  const openEdit = (p) => {
+    setEditing(p)
+    setPreview(null)
+    setFormOpen(true)
   }
 
-  const addSpec = () => {
-    const value = newSpec.trim()
-    if (!value) return
-    setForm((f) => ({ ...f, especificaciones: [...f.especificaciones, value] }))
-    setNewSpec("")
-  }
-
-  const removeSpec = (i) =>
-    setForm((f) => ({
-      ...f,
-      especificaciones: f.especificaciones.filter((_, idx) => idx !== i),
-    }))
-
-  const addImageUrl = () => {
-    const value = newImageUrl.trim()
-    if (!value) return
-    setForm((f) => ({ ...f, imagenes: [...f.imagenes, value] }))
-    setNewImageUrl("")
-  }
-
-  const removeImage = (i) =>
-    setForm((f) => ({
-      ...f,
-      imagenes: f.imagenes.filter((_, idx) => idx !== i),
-    }))
-
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      const data = await api.uploadImage(file)
-      setForm((f) => ({ ...f, imagenes: [...f.imagenes, data.url] }))
-    } catch (err) {
-      showError(err.message || "Error al subir la imagen.")
-    } finally {
-      setUploading(false)
-      e.target.value = ""
-    }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!form.nombre.trim() || !form.descripcion.trim()) {
-      showError("Nombre y descripción son obligatorios.")
-      return
-    }
-
-    setSaving(true)
-    try {
-      const payload = {
-        nombre: form.nombre,
-        descripcion: form.descripcion,
-        precio_referencial: Number(form.precio_referencial) || 0,
-        categoria_id: Number(form.categoria_id),
-        imagenes: form.imagenes.filter(Boolean),
-        especificaciones: form.especificaciones.filter(Boolean),
-      }
-
-      if (form.id) {
-        const updated = await api.updateProducto(form.id, payload)
-        setProducts((prev) =>
-          prev.map((p) => (p.id === updated.id ? updated : p))
-        )
-        setSuccessMsg("El producto se actualizó correctamente.")
-      } else {
-        const created = await api.createProducto(payload)
-        setProducts((prev) => [created, ...prev])
-        setSuccessMsg("El producto se creó correctamente.")
-      }
-      resetForm()
-    } catch (err) {
-      showError(err.message || "Error al guardar el producto.")
-    } finally {
-      setSaving(false)
+  const handleSave = async (payload) => {
+    if (editing?.id) {
+      const updated = await api.updateProducto(editing.id, payload)
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p))
+      )
+      setSuccessMsg("El producto se actualizó correctamente.")
+    } else {
+      const created = await api.createProducto(payload)
+      setProducts((prev) => [created, ...prev])
+      setSuccessMsg("El producto se creó correctamente.")
     }
   }
 
@@ -248,209 +164,61 @@ function ProductManager({ products, setProducts }) {
     try {
       await api.deleteProducto(p.id)
       setProducts((prev) => prev.filter((item) => item.id !== p.id))
-      if (form.id === p.id) resetForm()
+      if (editing?.id === p.id) setFormOpen(false)
       setSuccessMsg("El producto se eliminó correctamente.")
     } catch (err) {
       showError(err.message || "Error al eliminar el producto.")
     }
   }
 
-  const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
-
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
-      <form onSubmit={handleSubmit} className="h-fit rounded-2xl bg-white p-6 shadow-card">
-        <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-navy">
-          {form.id ? (
-            <>
-              <Pencil className="h-5 w-5 text-brand-green" /> Editar producto
-            </>
-          ) : (
-            <>
-              <Plus className="h-5 w-5 text-brand-green" /> Añadir producto
-            </>
-          )}
-        </h3>
-
-        <label className="mb-1 block text-sm font-semibold text-navy">Nombre</label>
-        <input
-          value={form.nombre}
-          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-          placeholder="Ej: Camilla de examen"
-          className={inputClass}
-        />
-
-        <label className="mb-1 mt-4 block text-sm font-semibold text-navy">Categoría</label>
-        <select
-          value={form.categoria_id}
-          onChange={(e) => setForm({ ...form, categoria_id: Number(e.target.value) })}
-          className={inputClass}
+    <div>
+      {notice && (
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 rounded-lg bg-pulse/10 px-4 py-2 text-sm font-semibold text-pulse"
         >
+          {notice}
+        </motion.p>
+      )}
+
+      {/* Toolbar de la tabla */}
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-card ring-1 ring-navy/5 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar producto por nombre..."
+            className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-navy outline-none transition placeholder:text-slate-400 focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+          />
+        </div>
+        <select
+          value={filterCat}
+          onChange={(e) => setFilterCat(e.target.value)}
+          className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+          aria-label="Filtrar por categoría"
+        >
+          <option value="all">Todas las categorías</option>
           {CATEGORIES.map((cat) => (
             <option key={cat.id} value={cat.id}>
-              {cat.nombre}
+              {cat.emoji} {cat.nombre}
             </option>
           ))}
         </select>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={openCreate}
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
+        >
+          <Plus className="h-4 w-4" />
+          Añadir Nuevo Producto
+        </motion.button>
+      </div>
 
-        <label className="mb-1 mt-4 block text-sm font-semibold text-navy">
-          Descripción
-        </label>
-        <textarea
-          value={form.descripcion}
-          onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-          rows="3"
-          placeholder="Ej: Camilla de exploración con colchoneta acolchada."
-          className={inputClass}
-        />
-
-        <label className="mb-1 mt-4 block text-sm font-semibold text-navy">
-          Precio Referencial Interno (Bs)
-        </label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={form.precio_referencial}
-          onChange={(e) => setForm({ ...form, precio_referencial: e.target.value })}
-          placeholder="0.00"
-          className={inputClass}
-        />
-
-        <div className="mt-5">
-          <label className="mb-1 block text-sm font-semibold text-navy">
-            Imágenes del producto
-          </label>
-
-          <div className="flex gap-2">
-            <input
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="https://... (URL de imagen)"
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={addImageUrl}
-              className="shrink-0 rounded-lg bg-navy px-4 text-sm font-semibold text-white transition hover:bg-navy-soft"
-            >
-              Agregar
-            </button>
-          </div>
-
-          <label className="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-brand-green hover:text-brand-green-dark">
-            <Upload className="h-4 w-4" />
-            {uploading ? "Subiendo..." : "Subir imagen desde tu equipo"}
-            <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
-          </label>
-
-          {form.imagenes.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {form.imagenes.map((url, i) => (
-                <div key={`${url}-${i}`} className="group relative overflow-hidden rounded-lg">
-                  <img
-                    src={url}
-                    alt={`Imagen ${i + 1}`}
-                    className="h-16 w-full object-cover"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(i)}
-                    aria-label="Quitar imagen"
-                    className="absolute right-1 top-1 rounded-full bg-navy/80 p-1 text-white opacity-0 transition group-hover:opacity-100"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5">
-          <label className="mb-1 block text-sm font-semibold text-navy">
-            Especificaciones Técnicas
-          </label>
-          <div className="flex gap-2">
-            <input
-              value={newSpec}
-              onChange={(e) => setNewSpec(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSpec())}
-              placeholder="Ej: Estructura de acero cromado"
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={addSpec}
-              className="shrink-0 rounded-lg bg-brand-green px-4 text-sm font-semibold text-white transition hover:bg-brand-green-dark"
-            >
-              + Agregar
-            </button>
-          </div>
-
-          {form.especificaciones.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {form.especificaciones.map((spec, i) => (
-                <span
-                  key={`${spec}-${i}`}
-                  className="flex items-center gap-1.5 rounded-full bg-brand-green/10 px-3 py-1.5 text-xs font-semibold text-brand-green-dark"
-                >
-                  {spec}
-                  <button
-                    type="button"
-                    onClick={() => removeSpec(i)}
-                    aria-label="Quitar especificación"
-                    className="text-brand-green-dark/60 transition hover:text-red-500"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {notice && (
-          <motion.p
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 rounded-lg bg-pulse/10 px-4 py-2 text-sm font-semibold text-pulse"
-          >
-            {notice}
-          </motion.p>
-        )}
-
-        <div className="mt-6 flex gap-3">
-          <motion.button
-            type="submit"
-            whileTap={{ scale: 0.97 }}
-            disabled={saving || uploading}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-green px-4 py-2.5 font-semibold text-white shadow-md shadow-brand-green/20 transition hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : form.id ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            {saving ? "Guardando..." : form.id ? "Guardar cambios" : "Añadir producto"}
-          </motion.button>
-          {form.id && (
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              onClick={resetForm}
-              className="rounded-full border border-slate-200 px-4 py-2.5 font-semibold text-slate-500 transition hover:border-slate-400"
-            >
-              Cancelar
-            </motion.button>
-          )}
-        </div>
-      </form>
-
+      {/* Tabla al 100% del ancho */}
       <div className="overflow-hidden rounded-2xl bg-white shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div>
@@ -459,19 +227,6 @@ function ProductManager({ products, setProducts }) {
               {filteredProducts.length} de {products.length} productos
             </p>
           </div>
-          <select
-            value={filterCat}
-            onChange={(e) => setFilterCat(e.target.value)}
-            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
-            aria-label="Filtrar por categoría"
-          >
-            <option value="all">Todas las categorías</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.emoji} {cat.nombre}
-              </option>
-            ))}
-          </select>
         </div>
 
         {filteredProducts.length === 0 ? (
@@ -479,9 +234,9 @@ function ProductManager({ products, setProducts }) {
             <Inbox className="mb-4 h-12 w-12 text-slate-300" />
             <p className="font-bold text-navy">No hay productos</p>
             <p className="text-sm text-slate-500">
-              {filterCat === "all"
+              {filterCat === "all" && !searchTerm
                 ? "Agrega tu primer producto."
-                : "No hay productos en esta categoría."}
+                : "No hay resultados para los filtros aplicados."}
             </p>
           </div>
         ) : (
@@ -501,108 +256,108 @@ function ProductManager({ products, setProducts }) {
                 {filteredProducts.map((p) => {
                   const inactivo = p.estado === "inactivo"
                   return (
-                  <tr
-                    key={p.id}
-                    onClick={() => setPreview(p)}
-                    className={`cursor-pointer transition-colors ${inactivo ? "opacity-50" : "hover:bg-slate-50"}`}
-                    title="Ver ficha técnica"
-                  >
-                    <td className="px-5 py-3">
-                      <span className="block h-11 w-11 overflow-hidden rounded-lg bg-slate-100">
-                        {p.imagenes?.[0] ? (
-                          <img
-                            src={p.imagenes[0]}
-                            alt={p.nombre}
-                            className="h-full w-full object-cover"
-                            onError={(e) => (e.currentTarget.style.display = "none")}
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-xs text-slate-300">
-                            —
-                          </span>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className={`font-semibold text-navy ${inactivo ? "line-through" : ""}`}>
-                            {p.nombre}
-                          </p>
-                          <p className="max-w-[220px] truncate text-xs text-slate-400">
-                            {p.descripcion}
-                          </p>
+                    <tr
+                      key={p.id}
+                      onClick={() => setPreview(p)}
+                      className={`cursor-pointer transition-colors ${inactivo ? "opacity-50" : "hover:bg-slate-50"}`}
+                      title="Ver ficha técnica"
+                    >
+                      <td className="px-5 py-3">
+                        <span className="block h-11 w-11 overflow-hidden rounded-lg bg-slate-100">
+                          {p.imagenes?.[0] ? (
+                            <img
+                              src={p.imagenes[0]}
+                              alt={p.nombre}
+                              className="h-full w-full object-cover"
+                              onError={(e) => (e.currentTarget.style.display = "none")}
+                            />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center text-xs text-slate-300">
+                              —
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className={`font-semibold text-navy ${inactivo ? "line-through" : ""}`}>
+                              {p.nombre}
+                            </p>
+                            <p className="max-w-[220px] truncate text-xs text-slate-400">
+                              {p.descripcion}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                        {CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))?.nombre}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 font-bold text-brand-green-dark">
-                      {Number(p.precio_referencial || 0).toLocaleString("es-BO", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-5 py-3">
-                      <motion.span
-                        key={p.estado}
-                        initial={{ scale: 0.85, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                          inactivo
-                            ? "bg-slate-100 text-slate-500"
-                            : "bg-brand-green/10 text-brand-green-dark"
-                        }`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${inactivo ? "bg-slate-400" : "bg-brand-green"}`} />
-                        {inactivo ? "Inactivo" : "Activo"}
-                      </motion.span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex justify-end gap-2">
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleEstado(p)
-                          }}
-                          title="Cambiar estado"
-                          className={`cursor-pointer rounded-lg p-2 transition ${
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                          {CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))?.nombre}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 font-bold text-brand-green-dark">
+                        {Number(p.precio_referencial || 0).toLocaleString("es-BO", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="px-5 py-3">
+                        <motion.span
+                          key={p.estado}
+                          initial={{ scale: 0.85, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
                             inactivo
-                              ? "bg-brand-green/10 text-brand-green-dark hover:bg-brand-green/20"
-                              : "bg-slate-100 text-pulse hover:bg-pulse/10"
+                              ? "bg-slate-100 text-slate-500"
+                              : "bg-brand-green/10 text-brand-green-dark"
                           }`}
                         >
-                          <Power className="h-4 w-4" />
-                        </motion.button>
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            startEdit(p)
-                          }}
-                          className="cursor-pointer rounded-lg bg-navy/5 p-2 text-navy transition hover:bg-navy/10"
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </motion.button>
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            remove(p)
-                          }}
-                          className="cursor-pointer rounded-lg bg-red-50 p-2 text-red-500 transition hover:bg-red-100"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </motion.button>
-                      </div>
-                    </td>
-                  </tr>
+                          <span className={`h-1.5 w-1.5 rounded-full ${inactivo ? "bg-slate-400" : "bg-brand-green"}`} />
+                          {inactivo ? "Inactivo" : "Activo"}
+                        </motion.span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex justify-end gap-2">
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleEstado(p)
+                            }}
+                            title="Cambiar estado"
+                            className={`cursor-pointer rounded-lg p-2 transition ${
+                              inactivo
+                                ? "bg-brand-green/10 text-brand-green-dark hover:bg-brand-green/20"
+                                : "bg-slate-100 text-pulse hover:bg-pulse/10"
+                            }`}
+                          >
+                            <Power className="h-4 w-4" />
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openEdit(p)
+                            }}
+                            className="cursor-pointer rounded-lg bg-navy/5 p-2 text-navy transition hover:bg-navy/10"
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              remove(p)
+                            }}
+                            className="cursor-pointer rounded-lg bg-red-50 p-2 text-red-500 transition hover:bg-red-100"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </motion.button>
+                        </div>
+                      </td>
+                    </tr>
                   )
                 })}
               </tbody>
@@ -619,7 +374,23 @@ function ProductManager({ products, setProducts }) {
 
       <AnimatePresence>
         {preview && (
-          <ProductDetailModal product={preview} onClose={() => setPreview(null)} showPrecio />
+          <ProductDetailModal
+            product={preview}
+            onClose={() => setPreview(null)}
+            mode="admin"
+            showPrecio
+            onEdit={openEdit}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {formOpen && (
+          <ProductFormModal
+            initial={editing}
+            onClose={() => setFormOpen(false)}
+            onSave={handleSave}
+          />
         )}
       </AnimatePresence>
     </div>

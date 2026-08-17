@@ -84,12 +84,40 @@ if ($categoriasCount === 0) {
     }
 }
 
-$usuariosCount = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
-if ($usuariosCount === 0) {
-    $stmt = $db->prepare(
-        'INSERT INTO usuarios (nombre, email, password, rol_id) VALUES (?, ?, ?, 1)'
-    );
-    $stmt->execute(['Administrador', 'admin@estabgroup.com', password_hash('password', PASSWORD_DEFAULT)]);
+// ---------- Usuarios iniciales (upsert: inserta o actualiza ambos) ----------
+// Garantiza que tanto Admin como Ventas existan siempre con hashing BCRYPT consistente.
+$roleIds = [];
+foreach ($db->query('SELECT id, nombre FROM roles') as $role) {
+    $roleIds[$role['nombre']] = (int) $role['id'];
+}
+
+$seedUsers = [
+    ['nombre' => 'Administrador', 'email' => 'admin@estabgroup.com', 'rol' => 'Admin'],
+    ['nombre' => 'Ventas', 'email' => 'ventas@estabgroup.com', 'rol' => 'Ventas'],
+];
+
+$upsert = $db->prepare(
+    'INSERT INTO usuarios (nombre, email, password, rol_id)
+     VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       nombre = VALUES(nombre),
+       password = VALUES(password),
+       rol_id = VALUES(rol_id)'
+);
+
+foreach ($seedUsers as $u) {
+    if (!isset($roleIds[$u['rol']])) {
+        $stmt = $db->prepare('INSERT INTO roles (nombre) VALUES (?)');
+        $stmt->execute([$u['rol']]);
+        $roleIds[$u['rol']] = (int) $db->lastInsertId();
+    }
+
+    $upsert->execute([
+        $u['nombre'],
+        $u['email'],
+        password_hash('password', PASSWORD_BCRYPT),
+        $roleIds[$u['rol']],
+    ]);
 }
 
 jsonResponse([
