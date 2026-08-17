@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams, useOutletContext } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, Eye, PackageSearch, Search, ImageOff } from "lucide-react"
+import { MessageCircle, Eye, PackageSearch, ImageOff } from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl } from "../data/mockProducts"
 import ProductDetailModal from "../components/ProductDetailModal"
+import ProductSearch from "../components/ProductSearch"
 
 function CatalogPage() {
   const { products } = useOutletContext()
@@ -71,13 +72,12 @@ function CatalogPage() {
         transition={{ duration: 0.45, delay: 0.1 }}
         className="relative mb-6"
       >
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
+        <ProductSearch
+          products={products}
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={setSearchTerm}
+          onSelectProduct={setSelected}
           placeholder="Buscar por nombre o categoría..."
-          className="w-full rounded-full border border-slate-200 bg-white py-3.5 pl-12 pr-4 text-sm text-navy shadow-card outline-none transition placeholder:text-slate-400 focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
         />
       </motion.div>
 
@@ -162,22 +162,24 @@ function CatalogPage() {
                     </p>
 
                     <div className="mt-4 space-y-2">
-                      <a
+                      <motion.a
                         href={buildWhatsAppUrl(product)}
                         target="_blank"
                         rel="noreferrer"
+                        whileTap={{ scale: 0.97 }}
                         className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-green px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-green/20 transition hover:bg-brand-green-dark"
                       >
                         <MessageCircle className="h-4 w-4" />
                         Cotizar por WhatsApp
-                      </a>
-                      <button
+                      </motion.a>
+                      <motion.button
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => setSelected(product)}
-                        className="flex w-full items-center justify-center gap-2 rounded-full border border-navy/15 px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-navy hover:bg-navy/5"
+                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-navy/15 px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-navy hover:bg-navy/5"
                       >
                         <Eye className="h-4 w-4" />
                         Ver detalle
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 </motion.article>

@@ -90,7 +90,7 @@ function Navbar() {
             <img
               src="/logo_nombre_2.jpeg"
               alt="Logo Estab Group S.R.L."
-              className="h-14 w-auto rounded-xl object-contain"
+              className="h-12 w-auto rounded-xl object-contain md:h-14"
             />
           </span>
         </Link>

@@ -53,14 +53,8 @@ function AdminHeader() {
             <img
               src="/logo_nombre_2.jpeg"
               alt="Logo Estab Group"
-              className="h-9 w-auto rounded-lg object-contain"
+              className="h-12 w-auto rounded-lg object-contain md:h-14"
             />
-          </span>
-          <span className="hidden leading-tight sm:block">
-            <span className="block text-lg font-bold tracking-wide text-white">ESTAB GROUP</span>
-            <span className="block text-[11px] font-medium uppercase tracking-[0.2em] text-brand-green">
-              S.R.L.
-            </span>
           </span>
         </Link>
 

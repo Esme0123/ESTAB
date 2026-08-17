@@ -1,17 +1,22 @@
 import { useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, MessageCircle, FileText, PackageSearch, ImageOff } from "lucide-react"
+import { MessageCircle, FileText, PackageSearch, ImageOff } from "lucide-react"
 import { CATEGORIES, buildQuoteWhatsAppUrl } from "../data/mockProducts"
+import ProductSearch from "./ProductSearch"
+import ProductDetailModal from "./ProductDetailModal"
 
 function CotizadorInterno({ products }) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [filterCat, setFilterCat] = useState("all")
   const [selectedId, setSelectedId] = useState(null)
+  const [preview, setPreview] = useState(null)
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase().trim()
     return products.filter((p) => {
       if (p.estado === "inactivo") return false
-      const cat = CATEGORIES.find((c) => c.id === p.categoria_id)
+      if (filterCat !== "all" && String(p.categoria_id) !== String(filterCat)) return false
+      const cat = CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))
       return (
         !q ||
         p.nombre.toLowerCase().includes(q) ||
@@ -19,38 +24,44 @@ function CotizadorInterno({ products }) {
         (cat && cat.nombre.toLowerCase().includes(q))
       )
     })
-  }, [products, searchTerm])
+  }, [products, searchTerm, filterCat])
 
   const selected = products.find((p) => p.id === selectedId) || null
 
   const formatPrecio = (value) =>
     Number(value || 0).toLocaleString("es-BO", { minimumFractionDigits: 2 })
 
+  const handleTypeaheadSelect = (product) => {
+    setSelectedId(product.id)
+    setPreview(null)
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
       <div>
-        <div className="relative mb-5">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar producto por nombre o categoría..."
-            className="w-full rounded-full border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm text-navy shadow-card outline-none transition placeholder:text-slate-400 focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
-          />
-        </div>
+        <ProductSearch
+          products={products}
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onSelectProduct={handleTypeaheadSelect}
+          placeholder="Buscar producto por nombre o categoría..."
+          showFilter
+          filterValue={filterCat}
+          onFilterChange={setFilterCat}
+          className="mb-5"
+        />
 
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center rounded-3xl bg-white py-16 text-center shadow-card">
             <PackageSearch className="mb-4 h-12 w-12 text-slate-300" />
             <p className="font-bold text-navy">Sin resultados</p>
-            <p className="text-sm text-slate-500">Prueba con otro término de búsqueda.</p>
+            <p className="text-sm text-slate-500">Prueba con otro término o categoría.</p>
           </div>
         ) : (
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
               {filtered.map((p) => {
-                const cat = CATEGORIES.find((c) => c.id === p.categoria_id)
+                const cat = CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))
                 const isSelected = selectedId === p.id
                 return (
                   <motion.button
@@ -60,8 +71,9 @@ function CotizadorInterno({ products }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    onClick={() => setSelectedId(isSelected ? null : p.id)}
-                    className={`flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition hover:shadow-xl ${
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setPreview(p)}
+                    className={`flex w-full cursor-pointer items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-card ring-1 transition-colors hover:bg-slate-50 hover:shadow-xl ${
                       isSelected ? "ring-2 ring-brand-green" : "ring-navy/5"
                     }`}
                   >
@@ -128,10 +140,7 @@ function CotizadorInterno({ products }) {
             {selected.especificaciones?.length > 0 && (
               <ul className="mt-4 space-y-1.5">
                 {selected.especificaciones.map((spec) => (
-                  <li
-                    key={spec}
-                    className="flex items-start gap-2 text-sm text-slate-600"
-                  >
+                  <li key={spec} className="flex items-start gap-2 text-sm text-slate-600">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-green" />
                     {spec}
                   </li>
@@ -156,6 +165,17 @@ function CotizadorInterno({ products }) {
           </p>
         )}
       </div>
+
+      <AnimatePresence>
+        {preview && (
+          <ProductDetailModal
+            product={preview}
+            onClose={() => setPreview(null)}
+            showPrecio
+            onSelect={(p) => setSelectedId(p.id)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

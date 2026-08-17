@@ -12,11 +12,12 @@ import {
   LayoutGrid,
   FileText,
 } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { CATEGORIES } from "../data/mockProducts"
 import { api } from "../services/api"
 import CotizadorInterno from "./CotizadorInterno"
 import SuccessModal from "./SuccessModal"
+import ProductDetailModal from "./ProductDetailModal"
 
 const EMPTY_FORM = {
   id: null,
@@ -108,6 +109,7 @@ function ProductManager({ products, setProducts }) {
   const [notice, setNotice] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
   const [filterCat, setFilterCat] = useState("all")
+  const [preview, setPreview] = useState(null)
 
   const showError = (msg) => {
     setNotice(msg)
@@ -421,8 +423,9 @@ function ProductManager({ products, setProducts }) {
         )}
 
         <div className="mt-6 flex gap-3">
-          <button
+          <motion.button
             type="submit"
+            whileTap={{ scale: 0.97 }}
             disabled={saving || uploading}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-green px-4 py-2.5 font-semibold text-white shadow-md shadow-brand-green/20 transition hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -434,15 +437,16 @@ function ProductManager({ products, setProducts }) {
               <Plus className="h-4 w-4" />
             )}
             {saving ? "Guardando..." : form.id ? "Guardar cambios" : "Añadir producto"}
-          </button>
+          </motion.button>
           {form.id && (
-            <button
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={resetForm}
               className="rounded-full border border-slate-200 px-4 py-2.5 font-semibold text-slate-500 transition hover:border-slate-400"
             >
               Cancelar
-            </button>
+            </motion.button>
           )}
         </div>
       </form>
@@ -497,87 +501,108 @@ function ProductManager({ products, setProducts }) {
                 {filteredProducts.map((p) => {
                   const inactivo = p.estado === "inactivo"
                   return (
-                    <tr key={p.id} className={`transition ${inactivo ? "opacity-50" : "hover:bg-slate-50"}`}>
-                      <td className="px-5 py-3">
-                        <span className="block h-11 w-11 overflow-hidden rounded-lg bg-slate-100">
-                          {p.imagenes?.[0] ? (
-                            <img
-                              src={p.imagenes[0]}
-                              alt={p.nombre}
-                              className="h-full w-full object-cover"
-                              onError={(e) => (e.currentTarget.style.display = "none")}
-                            />
-                          ) : (
-                            <span className="flex h-full w-full items-center justify-center text-xs text-slate-300">
-                              —
-                            </span>
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className={`font-semibold text-navy ${inactivo ? "line-through" : ""}`}>
-                              {p.nombre}
-                            </p>
-                            <p className="max-w-[220px] truncate text-xs text-slate-400">
-                              {p.descripcion}
-                            </p>
-                          </div>
+                  <tr
+                    key={p.id}
+                    onClick={() => setPreview(p)}
+                    className={`cursor-pointer transition-colors ${inactivo ? "opacity-50" : "hover:bg-slate-50"}`}
+                    title="Ver ficha técnica"
+                  >
+                    <td className="px-5 py-3">
+                      <span className="block h-11 w-11 overflow-hidden rounded-lg bg-slate-100">
+                        {p.imagenes?.[0] ? (
+                          <img
+                            src={p.imagenes[0]}
+                            alt={p.nombre}
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.currentTarget.style.display = "none")}
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-xs text-slate-300">
+                            —
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className={`font-semibold text-navy ${inactivo ? "line-through" : ""}`}>
+                            {p.nombre}
+                          </p>
+                          <p className="max-w-[220px] truncate text-xs text-slate-400">
+                            {p.descripcion}
+                          </p>
                         </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                          {CATEGORIES.find((c) => c.id === p.categoria_id)?.nombre}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-bold text-brand-green-dark">
-                        {Number(p.precio_referencial || 0).toLocaleString("es-BO", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                        {CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))?.nombre}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 font-bold text-brand-green-dark">
+                      {Number(p.precio_referencial || 0).toLocaleString("es-BO", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="px-5 py-3">
+                      <motion.span
+                        key={p.estado}
+                        initial={{ scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                          inactivo
+                            ? "bg-slate-100 text-slate-500"
+                            : "bg-brand-green/10 text-brand-green-dark"
+                        }`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${inactivo ? "bg-slate-400" : "bg-brand-green"}`} />
+                        {inactivo ? "Inactivo" : "Activo"}
+                      </motion.span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex justify-end gap-2">
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleEstado(p)
+                          }}
+                          title="Cambiar estado"
+                          className={`cursor-pointer rounded-lg p-2 transition ${
                             inactivo
-                              ? "bg-slate-100 text-slate-500"
-                              : "bg-brand-green/10 text-brand-green-dark"
+                              ? "bg-brand-green/10 text-brand-green-dark hover:bg-brand-green/20"
+                              : "bg-slate-100 text-pulse hover:bg-pulse/10"
                           }`}
                         >
-                          <span className={`h-1.5 w-1.5 rounded-full ${inactivo ? "bg-slate-400" : "bg-brand-green"}`} />
-                          {inactivo ? "Inactivo" : "Activo"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => toggleEstado(p)}
-                            title="Cambiar estado"
-                            className={`rounded-lg p-2 transition ${
-                              inactivo
-                                ? "bg-brand-green/10 text-brand-green-dark hover:bg-brand-green/20"
-                                : "bg-slate-100 text-pulse hover:bg-pulse/10"
-                            }`}
-                          >
-                            <Power className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => startEdit(p)}
-                            className="rounded-lg bg-navy/5 p-2 text-navy transition hover:bg-navy/10"
-                            title="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => remove(p)}
-                            className="rounded-lg bg-red-50 p-2 text-red-500 transition hover:bg-red-100"
-                            title="Eliminar"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                          <Power className="h-4 w-4" />
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            startEdit(p)
+                          }}
+                          className="cursor-pointer rounded-lg bg-navy/5 p-2 text-navy transition hover:bg-navy/10"
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            remove(p)
+                          }}
+                          className="cursor-pointer rounded-lg bg-red-50 p-2 text-red-500 transition hover:bg-red-100"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </motion.button>
+                      </div>
+                    </td>
+                  </tr>
                   )
                 })}
               </tbody>
@@ -591,6 +616,12 @@ function ProductManager({ products, setProducts }) {
         message={successMsg}
         onClose={() => setSuccessMsg("")}
       />
+
+      <AnimatePresence>
+        {preview && (
+          <ProductDetailModal product={preview} onClose={() => setPreview(null)} showPrecio />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
