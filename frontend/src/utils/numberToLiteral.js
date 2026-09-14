@@ -2,7 +2,7 @@ export function numeroALetras(monto) {
   const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
   const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
   const diezEspeciales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
-  const cientos = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINCENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOIENTOS', 'NOVECIENTOS'];
+  const cientos = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
 
   const entero = Math.floor(monto);
   const centavos = Math.round((monto - entero) * 100).toString().padStart(2, '0');
@@ -29,11 +29,17 @@ export function numeroALetras(monto) {
   }
 
   let letras = '';
-  const miles = Math.floor(entero / 1000);
+  const millones = Math.floor(entero / 1000000);
+  const miles = Math.floor((entero % 1000000) / 1000);
   const resto = entero % 1000;
 
+  if (millones > 0) {
+    letras += (
+      millones === 1 ? 'UN MILLON ' : convertirGrupo(millones).trim() + ' MILLONES '
+    );
+  }
   if (miles > 0) {
-    letras += miles === 1 ? 'UN MIL ' : convertirGrupo(miles) + 'MIL ';
+    letras += miles === 1 ? 'UN MIL ' : convertirGrupo(miles).trim() + ' MIL ';
   }
   if (resto > 0) {
     letras += convertirGrupo(resto);

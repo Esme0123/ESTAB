@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams, useOutletContext } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, Eye, PackageSearch, ImageOff, Check, Plus, Trash2 } from "lucide-react"
+import { MessageCircle, Eye, PackageSearch, ImageOff, Check, Plus, Trash2, Calculator } from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl, buildMultiQuoteWhatsAppUrl } from "../data/mockProducts"
 import ProductDetailModal from "../components/ProductDetailModal"
 import ProductSearch from "../components/ProductSearch"
+import CotizadorPanel from "../components/CotizadorPanel"
 
 const CATEGORY_STYLES = {
   1: {
@@ -39,6 +40,7 @@ function CatalogPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selected, setSelected] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState([])
+  const [cotizadorOpen, setCotizadorOpen] = useState(false)
 
   const urlCategory = searchParams.get("categoria") || null
   const [activeCategory, setActiveCategory] = useState(urlCategory)
@@ -273,6 +275,15 @@ function CatalogPage() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {cotizadorOpen && (
+          <CotizadorPanel
+            items={selectedProducts}
+            onClose={() => setCotizadorOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {selectedProducts.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 48 }}
@@ -293,6 +304,14 @@ function CatalogPage() {
                 <Trash2 className="h-3.5 w-3.5" />
                 Vaciar
               </button>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setCotizadorOpen(true)}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-[#EAB308]/60 bg-[#1A1C38]/90 px-4 py-2 text-sm font-bold text-[#EAB308] shadow-lg shadow-black/20 transition hover:border-[#EAB308] hover:bg-[#1A1C38]"
+              >
+                <Calculator className="h-4 w-4" />
+                Modo Cotizador
+              </motion.button>
               <a
                 href={buildMultiQuoteWhatsAppUrl(selectedProducts)}
                 target="_blank"
