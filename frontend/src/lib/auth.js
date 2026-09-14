@@ -57,3 +57,11 @@ export const getRememberedCredentials = () => {
     return null
   }
 }
+
+export const normalizeRole = (user) =>
+  String(user?.rol || user?.role || "").toLowerCase()
+
+export const isAdminRole = (user) => normalizeRole(user) === "admin"
+
+export const isCotizadorRole = (user) =>
+  normalizeRole(user) === "cotizador" || normalizeRole(user) === "ventas"

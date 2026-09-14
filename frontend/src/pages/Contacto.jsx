@@ -14,7 +14,7 @@ const INFO_CARDS = [
   {
     icon: Mail,
     titulo: "Correo electrónico",
-    valor: "estabgroup@gmail.com",
+    valor: EMAIL_CONTACT,
     detalle: "Respondemos en un plazo máximo de 24 horas",
     href: `mailto:${EMAIL_CONTACT}`,
   },

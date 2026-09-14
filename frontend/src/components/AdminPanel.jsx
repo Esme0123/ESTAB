@@ -12,14 +12,15 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { CATEGORIES } from "../data/mockProducts"
 import { api } from "../services/api"
+import { isAdminRole } from "../lib/auth"
 import CotizadorInterno from "./CotizadorInterno"
 import SuccessModal from "./SuccessModal"
 import ProductDetailModal from "./ProductDetailModal"
 import ProductFormModal from "./ProductFormModal"
 
 function AdminPanel({ products, setProducts, user }) {
-  const isAdmin = user?.rol === "Admin"
-  const [tab, setTab] = useState("catalogo")
+  const isAdmin = isAdminRole(user)
+  const [tab, setTab] = useState(isAdmin ? "catalogo" : "cotizador")
 
   if (!isAdmin) {
     return (
@@ -28,11 +29,11 @@ function AdminPanel({ products, setProducts, user }) {
           <div>
             <h2 className="text-3xl font-extrabold text-navy">Cotizador Interno</h2>
             <p className="mt-1 text-slate-500">
-              Genera cotizaciones por WhatsApp con el precio referencial interno.
+              Genera cotizaciones por WhatsApp con el precio referencial interno. Sin editación de catálogo.
             </p>
           </div>
-          <span className="rounded-full bg-brand-green/10 px-4 py-1.5 text-sm font-bold text-brand-green-dark">
-            {products.length} productos en catálogo
+          <span className="rounded-full bg-amber-500/20 px-4 py-1.5 text-sm font-bold text-amber-600 ring-1 ring-amber-500/40">
+            💼 Modo Cotizador
           </span>
         </div>
         <CotizadorInterno products={products} />

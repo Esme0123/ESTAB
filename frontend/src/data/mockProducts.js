@@ -276,7 +276,7 @@ export const PRODUCTS = [
 ]
 
 export const WHATSAPP_NUMBER = "59171814954"
-export const EMAIL_CONTACT = "estabgroup@gmail.com"
+export const EMAIL_CONTACT = "info@estab.com.bo"
 export const ADDRESS_FULL = "Ciudad Satélite C. Fernando Caballero # 1158, El Alto, Bolivia"
 
 export const buildWhatsAppUrl = (producto) => {

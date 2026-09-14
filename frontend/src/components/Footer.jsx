@@ -120,7 +120,7 @@ function Footer() {
                   href={`mailto:${EMAIL_CONTACT}`}
                   className="font-semibold transition hover:text-brand-green"
                 >
-                  estabgroup@gmail.com
+                  {EMAIL_CONTACT}
                 </a>
                 <p className="text-xs text-white/50">Correo electrónico</p>
               </div>

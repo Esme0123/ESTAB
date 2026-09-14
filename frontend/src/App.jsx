@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, Outlet } from "react-router-dom"
-import { MessageCircle, LogOut, ExternalLink, ShieldCheck } from "lucide-react"
+import { MessageCircle, LogOut, ExternalLink } from "lucide-react"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import AdminPanel from "./components/AdminPanel"
@@ -10,7 +10,7 @@ import Nosotros from "./pages/Nosotros"
 import CatalogPage from "./pages/CatalogPage"
 import Contacto from "./pages/Contacto"
 import { buildGeneralWhatsAppUrl } from "./data/mockProducts"
-import { isAuthenticated, logout, getStoredUser } from "./lib/auth"
+import { isAuthenticated, logout, getStoredUser, isAdminRole } from "./lib/auth"
 import { api, mockProductos, BASE_URL } from "./services/api"
 
 const WA_FAB_URL = buildGeneralWhatsAppUrl()
@@ -60,10 +60,15 @@ function AdminHeader() {
 
         <nav className="hidden flex-1 justify-center lg:flex">
           {user ? (
-            <span className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold text-brand-green">
-              <ShieldCheck className="h-4 w-4" />
-              {user.nombre} · {user.rol}
-            </span>
+            isAdminRole(user) ? (
+              <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-3 py-1 rounded-full text-xs font-semibold">
+                🛡️ Modo Administrador
+              </span>
+            ) : (
+              <span className="bg-amber-500/20 text-amber-400 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-semibold">
+                💼 Modo Cotizador
+              </span>
+            )
           ) : (
             <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-brand-green">
               Panel de Administración
