@@ -1,14 +1,22 @@
 import { useState } from "react"
 import { Navigate, Link, useNavigate } from "react-router-dom"
-import { Lock, Mail, LogIn, ArrowLeft, MessageCircle, Loader2 } from "lucide-react"
-import { isAuthenticated, setSession } from "../lib/auth"
+import { Lock, Mail, LogIn, ArrowLeft, MessageCircle, Loader2, Check } from "lucide-react"
+import {
+  isAuthenticated,
+  setSession,
+  getRememberedCredentials,
+  saveRememberedCredentials,
+  clearRememberedCredentials,
+} from "../lib/auth"
 import { api } from "../services/api"
 import { WHATSAPP_NUMBER } from "../data/mockProducts"
 
 function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const remembered = getRememberedCredentials()
+  const [email, setEmail] = useState(remembered?.email || "")
+  const [password, setPassword] = useState(remembered?.password || "")
+  const [remember, setRemember] = useState(!!remembered)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -26,11 +34,20 @@ function Login() {
     setLoading(true)
     try {
       const data = await api.login(email.trim(), password)
-      setSession(data.token, {
-        nombre: data.nombre,
-        email: data.email,
-        rol: data.rol,
-      })
+      setSession(
+        data.token,
+        {
+          nombre: data.nombre,
+          email: data.email,
+          rol: data.rol,
+        },
+        remember
+      )
+      if (remember) {
+        saveRememberedCredentials(email.trim(), password)
+      } else {
+        clearRememberedCredentials()
+      }
       navigate("/admin", { replace: true })
     } catch (err) {
       setError(err.message || "No se pudo iniciar sesión.")
@@ -101,6 +118,29 @@ function Login() {
               className={inputClass}
             />
           </div>
+
+          <label className="mt-5 flex w-fit cursor-pointer select-none items-center">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="peer sr-only"
+            />
+            <span
+              className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition ${
+                remember
+                  ? "border-[#3BB54A] bg-[#3BB54A] shadow-md shadow-brand-green/30"
+                  : "border-white/25 bg-white/10 hover:border-white/40"
+              }`}
+              aria-hidden="true"
+            >
+              <Check
+                className="h-3.5 w-3.5 text-white transition-opacity"
+                style={{ opacity: remember ? 1 : 0 }}
+              />
+            </span>
+            <span className="ml-2.5 text-sm text-slate-300">Recordarme</span>
+          </label>
 
           {error && (
             <p className="mt-4 rounded-lg bg-red-500/15 px-4 py-2 text-sm font-medium text-red-300">

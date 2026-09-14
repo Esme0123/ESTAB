@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import {
   X,
@@ -57,6 +57,14 @@ const nombreCategoria = (p) =>
   CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))?.nombre ||
   "General"
 
+const normalizarTelefono = (raw) => {
+  const t = String(raw || "").replace(/[^0-9]/g, "")
+  if (!t) return ""
+  if (t.startsWith("591")) return t
+  if (t.startsWith("0")) return `591${t.slice(1)}`
+  return `591${t}`
+}
+
 async function cargarLogo() {
   try {
     const res = await fetch(LOGO_URL)
@@ -76,12 +84,15 @@ async function cargarLogo() {
   }
 }
 
-function CotizadorPanel({ items: productosIniciales = [], onClose }) {
+function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "interno" }) {
   const [cliente, setCliente] = useState("")
   const [nitCi, setNitCi] = useState("")
   const [atencion, setAtencion] = useState("")
+  const [telefonoCliente, setTelefonoCliente] = useState("")
+  const [telefonoError, setTelefonoError] = useState(false)
   const [fechaValidez, setFechaValidez] = useState(fechaPorDefecto)
   const [exportando, setExportando] = useState(null)
+  const telefonoRef = useRef(null)
 
   const [items, setItems] = useState(() =>
     productosIniciales.map((p, idx) => ({
@@ -419,6 +430,19 @@ function CotizadorPanel({ items: productosIniciales = [], onClose }) {
 
   function enviarWhatsApp() {
     if (items.length === 0) return
+
+    const esInterno = modo === "interno"
+
+    if (esInterno) {
+      const telefono = normalizarTelefono(telefonoCliente)
+      if (!telefono) {
+        setTelefonoError(true)
+        telefonoRef.current?.focus()
+        return
+      }
+      setTelefonoError(false)
+    }
+
     const lineas = items
       .map(
         (it, i) =>
@@ -427,27 +451,53 @@ function CotizadorPanel({ items: productosIniciales = [], onClose }) {
           )} = Bs. ${formatNumero(it.cantidad * it.precioUnitario)}`
       )
       .join("\n")
-    const mensaje = [
-      `*COTIZACIÓN ${EMPRESA_NOMBRE}*`,
-      EMPRESA_DIRECCION,
-      `Tel/WhatsApp: ${EMPRESA_TELEFONO} | Email: ${EMAIL_CONTACT}`,
-      "——————————",
-      `Hola ${atencion || cliente || "estimado cliente"}, le compartimos el resumen de su cotización:`,
-      "",
+
+    const resumen = [
       `Cliente: ${cliente || "—"}`,
       `NIT/CI: ${nitCi || "—"}`,
+      `Teléfono: ${telefonoCliente || "—"}`,
       `Fecha de validez: ${formatFecha(fechaValidez)}`,
-      "",
-      "*DETALLE DE LOS PRODUCTOS*",
-      lineas,
-      "",
-      `*TOTAL GENERAL: Bs. ${formatNumero(total)}*`,
-      sonLiteral,
-      "",
-      "Los precios incluyen líneas de equipamiento, mobiliario e insumos del catálogo de Estab Group. ¿Desea confirmar su pedido? Quedamos atentos a su respuesta.",
-      "¡Gracias por confiar en nosotros!",
     ].join("\n")
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+
+    const mensaje = esInterno
+      ? [
+          `*COTIZACIÓN ${EMPRESA_NOMBRE}*`,
+          EMPRESA_DIRECCION,
+          `Tel/WhatsApp Estab: ${EMPRESA_TELEFONO} | Email: ${EMAIL_CONTACT}`,
+          "——————————",
+          `Estimado/a ${atencion || cliente || "cliente"}, le compartimos la cotización solicitada:`,
+          "",
+          resumen,
+          "",
+          "*DETALLE DE LOS PRODUCTOS*",
+          lineas,
+          "",
+          `*TOTAL GENERAL: Bs. ${formatNumero(total)}*`,
+          sonLiteral,
+          "",
+          "Los precios incluyen líneas de equipamiento, mobiliario e insumos del catálogo de Estab Group. Para confirmar su pedido responda este mensaje o llámenos. ¡Gracias por confiar en nosotros!",
+        ].join("\n")
+      : [
+          `*COTIZACIÓN ${EMPRESA_NOMBRE}*`,
+          EMPRESA_DIRECCION,
+          "——————————",
+          "Hola Estab Group, deseo solicitar la siguiente cotización:",
+          "",
+          resumen,
+          "",
+          "*DETALLE DE LOS PRODUCTOS*",
+          lineas,
+          "",
+          `*TOTAL ESTIMADO: Bs. ${formatNumero(total)}*`,
+          sonLiteral,
+          "",
+          "Quedo atento a su propuesta y disponibilidad. ¡Gracias!",
+        ].join("\n")
+
+    const destino = esInterno
+      ? normalizarTelefono(telefonoCliente)
+      : WHATSAPP_NUMBER
+    const url = `https://wa.me/${destino}?text=${encodeURIComponent(mensaje)}`
     window.open(url, "_blank", "noopener,noreferrer")
   }
 
@@ -546,6 +596,43 @@ function CotizadorPanel({ items: productosIniciales = [], onClose }) {
                   onChange={(e) => setFechaValidez(e.target.value)}
                   className={inputClass}
                 />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-1 block text-xs font-semibold text-slate-500">
+                  Teléfono / WhatsApp del Cliente *
+                </span>
+                <div className="relative">
+                  <MessageCircle
+                    className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                      telefonoError ? "text-red-400" : "text-brand-green"
+                    }`}
+                  />
+                  <input
+                    ref={telefonoRef}
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoCliente}
+                    onChange={(e) => {
+                      setTelefonoCliente(e.target.value)
+                      if (telefonoError) setTelefonoError(false)
+                    }}
+                    placeholder="Ej: 706 12345"
+                    className={`${inputClass} pl-10 ${
+                      telefonoError
+                        ? "border-red-400 focus:border-red-400 focus:ring-red-400/20"
+                        : ""
+                    }`}
+                  />
+                </div>
+                {telefonoError && (
+                  <span className="mt-1.5 block text-xs font-semibold text-red-500">
+                    Ingresa el teléfono/WhatsApp del cliente para enviar la cotización.
+                  </span>
+                )}
+                <span className="mt-1 block text-[11px] text-slate-400">
+                  El resumen se envía directo a este número. Se agrega el prefijo 591
+                  automáticamente si no lo incluyes.
+                </span>
               </label>
             </div>
           </section>
@@ -715,7 +802,9 @@ function CotizadorPanel({ items: productosIniciales = [], onClose }) {
           </div>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400">
             <PackagePlus className="h-3.5 w-3.5" />
-            Los montos se calculan automáticamente: cantidad × precio unitario.
+            {modo === "interno"
+              ? "Cotización interna: el resumen se envía al WhatsApp del cliente registrado."
+              : "Cotización pública: el resumen se envía directo a Estab Group."}
           </p>
         </footer>
       </motion.aside>

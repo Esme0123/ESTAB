@@ -279,6 +279,7 @@ function CatalogPage() {
           <CotizadorPanel
             items={selectedProducts}
             onClose={() => setCotizadorOpen(false)}
+            modo="interno"
           />
         )}
       </AnimatePresence>
