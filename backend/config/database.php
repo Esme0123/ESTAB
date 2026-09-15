@@ -12,6 +12,25 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=utf-8');
 
+const DB_HOST = 'localhost';
+const DB_PORT = 3306;
+const DB_NAME = 'estab_bd';
+const DB_USER = 'esme';
+const DB_PASS = 'chochocomani123.';
+
+/**
+ * Orígenes permitidos por CORS.
+ * - Para desarrollo local (Vite) se autoriza http://localhost:5173
+ * - En producción se incluye el dominio de GoDaddy.
+ * Dejar como '*' permite cualquier origen (útil durante la migración).
+ */
+const ALLOWED_ORIGINS = [
+    'http://localhost:5173',      // dev server de Vite
+    'http://127.0.0.1:5173',
+    'https://estab.com.bo', // <- GoDaddy (producción)
+    '*',                          // wildcard (permite cualquier origen durante la migración)
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
@@ -28,9 +47,9 @@ function db(): PDO
 
     if ($pdo === null) {
         $host = getenv('DB_HOST') ?: 'localhost';
-        $name = getenv('DB_NAME') ?: 'estab_group_db';
-        $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASSWORD') ?: '';
+        $name = getenv('DB_NAME') ?: 'estab_bd';
+        $user = getenv('DB_USER') ?: 'esme';
+        $pass = getenv('DB_PASSWORD') ?: 'chochocomani123.';
         $port = getenv('DB_PORT') ?: '3306';
 
         $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
