@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, MessageCircle, Lock } from "lucide-react"
+import { Phone, Mail, MapPin, MessageCircle, Lock, Clock } from "lucide-react"
 import { Link } from "react-router-dom"
 import { CATEGORIES, WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
 
@@ -137,6 +137,13 @@ function Footer() {
                   Ciudad Satélite C. Fernando Caballero # 1158
                 </a>
                 <p className="text-xs text-white/50">El Alto, Bolivia</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
+              <div>
+                <p className="font-semibold">Lun - Vie: 8:30 a 17:30 · Sáb: 8:30 a 12:00</p>
+                <p className="text-xs text-white/50">Domingo: Cerrado</p>
               </div>
             </li>
           </ul>

@@ -1,32 +1,8 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Phone, Mail, MapPin, Send, User, AtSign, Smartphone, MessageCircle } from "lucide-react"
-import { WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
+import { Send, User, AtSign, Smartphone, MessageCircle } from "lucide-react"
+import { EMAIL_CONTACT } from "../data/mockProducts"
 import LocationMap from "../components/LocationMap"
-
-const INFO_CARDS = [
-  {
-    icon: Phone,
-    titulo: "Teléfono / WhatsApp",
-    valor: "+591 71814954",
-    detalle: "Atención de lunes a viernes, 8:00 a 18:00",
-    href: `https://wa.me/${WHATSAPP_NUMBER}`,
-  },
-  {
-    icon: Mail,
-    titulo: "Correo electrónico",
-    valor: EMAIL_CONTACT,
-    detalle: "Respondemos en un plazo máximo de 24 horas",
-    href: `mailto:${EMAIL_CONTACT}`,
-  },
-  {
-    icon: MapPin,
-    titulo: "Dirección",
-    valor: "Ciudad Satélite C. Fernando Caballero # 1158",
-    detalle: "El Alto, Bolivia",
-    href: "https://maps.google.com/?q=Ciudad+Satelite+Fernando+Caballero+1158+El+Alto",
-  },
-]
 
 const container = {
   hidden: {},
@@ -110,14 +86,13 @@ function Contacto() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy/5 sm:p-8"
-          >
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy/5 sm:p-8"
+        >
             <motion.h2 variants={item} className="text-2xl font-extrabold text-navy">
               Formulario de consulta
             </motion.h2>
@@ -209,36 +184,7 @@ function Contacto() {
                 )}
               </motion.div>
             </form>
-          </motion.div>
-
-          <div className="grid content-start gap-5">
-            {INFO_CARDS.map(({ icon: Icon, titulo, valor, detalle, href }, i) => (
-              <motion.a
-                key={titulo}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                initial={{ opacity: 0, x: 24 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                whileHover={{ x: 6 }}
-                className="flex items-start gap-4 rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy/5"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-navy text-brand-green">
-                  <Icon className="h-6 w-6" />
-                </span>
-                <span>
-                  <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-                    {titulo}
-                  </span>
-                  <span className="mt-1 block font-bold text-navy">{valor}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{detalle}</span>
-                </span>
-              </motion.a>
-            ))}
-          </div>
-        </div>
+        </motion.div>
       </section>
 
       <LocationMap />
