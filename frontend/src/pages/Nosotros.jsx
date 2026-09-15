@@ -1,5 +1,6 @@
 import { Target, Eye, Lightbulb, Cpu, ShieldCheck, Award } from "lucide-react"
 import { motion } from "framer-motion"
+import LocationMap from "../components/LocationMap"
 
 const MISION =
   "Proveer soluciones integrales en equipamiento médico, insumos de laboratorio y mobiliario especializado con los más altos estándares de calidad y tecnología en Bolivia."
@@ -167,6 +168,8 @@ function Nosotros() {
           </motion.div>
         </div>
       </section>
+
+      <LocationMap />
     </>
   )
 }

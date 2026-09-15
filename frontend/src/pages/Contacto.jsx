@@ -2,6 +2,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { Phone, Mail, MapPin, Send, User, AtSign, Smartphone, MessageCircle } from "lucide-react"
 import { WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
+import LocationMap from "../components/LocationMap"
 
 const INFO_CARDS = [
   {
@@ -239,6 +240,8 @@ function Contacto() {
           </div>
         </div>
       </section>
+
+      <LocationMap />
     </>
   )
 }

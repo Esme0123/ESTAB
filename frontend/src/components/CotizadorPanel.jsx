@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
-import * as XLSX from "xlsx"
+import * as XLSX from "xlsx-js-style"
 import { numeroALetras } from "../utils/numberToLiteral"
 import { CATEGORIES, WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
 
@@ -369,12 +369,18 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
     if (items.length === 0) return
     setExportando("excel")
     try {
+      const NAVY = { rgb: "1A1C38" }
+      const GOLD = { rgb: "EAB308" }
+      const WHITE = { rgb: "FFFFFF" }
+      const BORDER = { rgb: "CBD5E1" }
+
       const filas = [
         [EMPRESA_NOMBRE, "", "", "", "", ""],
-        [`NIT: ${EMPRESA_NIT}`, "La Paz, Bolivia", "", "", "Tel/WhatsApp:", EMPRESA_TELEFONO],
-        [EMPRESA_DIRECCION, "", "", "", "Email:", EMAIL_CONTACT],
-        [],
         ["COTIZACIÓN INSTITUCIONAL", "", "", "", "", ""],
+        [`Dirección: ${EMPRESA_DIRECCION}`, "", "", "", "", ""],
+        [`NIT: ${EMPRESA_NIT}   ·   ${EMAIL_CONTACT}`, "", "", "", "", ""],
+        [],
+        ["DATOS DEL CLIENTE", "", "", "", "", ""],
         ["Cliente:", cliente || "—", "", "", "Fecha de emisión:", formatFecha(hoyISO())],
         ["NIT / CI:", nitCi || "—", "", "", "Fecha de validez:", formatFecha(fechaValidez)],
         ["Atención a:", atencion || "—", "", "", "", ""],
@@ -389,36 +395,193 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
           round2(it.cantidad * it.precioUnitario),
         ]),
         [],
-        ["", "", "", "", "TOTAL GENERAL (Bs):", round2(total)],
+        ["TOTAL GENERAL (Bs):", "", "", "", "", round2(total)],
         ["SON: " + totalLiteral, "", "", "", "", ""],
+        [],
+        ["TÉRMINOS DE LA COTIZACIÓN", "", "", "", "", ""],
+        ["• La presente cotización es una oferta no vinculante y está sujeta a confirmación de stock y disponibilidad.", "", "", "", "", ""],
+        ["• La validez de los precios es de 15 días calendario a partir de la fecha de emisión.", "", "", "", "", ""],
+        ["• Plazo de entrega estimado de 5 a 10 días hábiles, previa confirmación del pedido.", "", "", "", "", ""],
+        ["• Forma de pago: 50% de anticipo y saldo contra entrega (depósito o transferencia bancaria).", "", "", "", "", ""],
+        ["• No incluye instalación ni transporte, salvo acuerdo previo con el asesor comercial.", "", "", "", "", ""],
+        [],
+        ["Firma y sello del vendedor", "", "", "", "", ""],
+        ["Asesor Comercial Estab Group S.R.L.", "", "", "", "", ""],
       ]
 
       const ws = XLSX.utils.aoa_to_sheet(filas)
 
-      ws["!cols"] = [
-        { wch: 6 },
-        { wch: 48 },
-        { wch: 30 },
-        { wch: 10 },
-        { wch: 20 },
-        { wch: 20 },
-      ]
-      ws["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-        { s: { r: 4, c: 0 }, e: { r: 4, c: 5 } },
-        { s: { r: 13, c: 1 }, e: { r: 13, c: 5 } },
-      ]
+      const styleCell = (r, c, s) => {
+        const addr = XLSX.utils.encode_cell({ r, c })
+        if (ws[addr]) ws[addr].s = s
+      }
+      const merge = (r, c1, c2) =>
+        ws["!merges"] = [...(ws["!merges"] || []), { s: { r, c: c1 }, e: { r, c: c2 } }]
 
-      items.forEach((it, i) => {
-        const r = 10 + i
+      const caption = {
+        font: { name: "Calibri", sz: 9, bold: true, color: WHITE },
+        fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      }
+
+      // ------------------------------------------------------------
+      // 1) ENCABEZADO PRINCIPAL (filas 0-3), fondo navy
+      // ------------------------------------------------------------
+      for (let r = 0; r <= 3; r++) {
+        merge(r, 0, 5)
+        for (let c = 0; c <= 5; c++) {
+          styleCell(r, c, {
+            font: { name: "Calibri", sz: r === 0 ? 18 : r === 1 ? 14 : 10, bold: r === 0 || r === 1, color: r === 1 ? GOLD : WHITE },
+            fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
+            alignment: { horizontal: r === 1 || r === 2 ? "left" : "center", vertical: "center" },
+            border: { bottom: { style: "hair", color: { rgb: "3D4056" } } },
+          })
+        }
+      }
+
+      // ------------------------------------------------------------
+      // 2) DATOS DEL CLIENTE (filas 5-8)
+      // ------------------------------------------------------------
+      merge(5, 0, 5)
+      for (let c = 0; c <= 5; c++) {
+        styleCell(5, c, {
+          font: { name: "Calibri", sz: 11, bold: true, color: NAVY },
+          alignment: { horizontal: "left", vertical: "center" },
+          border: { bottom: { style: "medium", color: BORDER } },
+        })
+      }
+      for (let r = 6; r <= 8; r++) {
+        for (let c = 0; c <= 5; c++) {
+          styleCell(r, c, {
+            font: { name: "Calibri", sz: 10, color: { rgb: "334155" } },
+            alignment: { vertical: "center", horizontal: c === 0 || c === 4 ? "left" : "left" },
+          })
+        }
+        styleCell(r, 0, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center" } })
+        styleCell(r, 4, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center", horizontal: "right" } })
+        styleCell(r, 5, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center", horizontal: "left" } })
+      }
+
+      // ------------------------------------------------------------
+      // 3) TABLA DE PRODUCTOS
+      // ------------------------------------------------------------
+      const headerRow = 10
+      const firstData = 11
+      const lastData = firstData + items.length - 1
+      const totalRow = lastData + 2
+      const literalRow = totalRow + 1
+      const termsTitleRow = literalRow + 2
+      const termsStart = termsTitleRow + 1
+      const termsRows = 5
+      const firmaRow = termsStart + termsRows + 1
+
+      for (let c = 0; c <= 5; c++) {
+        styleCell(headerRow, c, {
+          ...caption,
+          font: { name: "Calibri", sz: 10, bold: true, color: WHITE },
+        })
+      }
+      for (let r = firstData; r <= lastData; r++) {
+        const esPar = (r - firstData) % 2 === 1
+        for (let c = 0; c <= 5; c++) {
+          const esMonto = c === 4 || c === 5
+          const cell = ws[XLSX.utils.encode_cell({ r, c })]
+          cell.s = {
+            font: { name: "Calibri", sz: 10, bold: esMonto, color: { rgb: esMonto ? "1A1C38" : "334155" } },
+            fill: { patternType: "solid", fgColor: { rgb: esPar ? "F8FAFC" : "FFFFFF" } },
+            alignment: {
+              horizontal: c === 0 || c === 3 ? "center" : esMonto ? "right" : "left",
+              vertical: "center",
+              wrapText: c === 1,
+            },
+            border: { top: { style: "hair", color: BORDER }, bottom: { style: "hair", color: BORDER } },
+          }
+        }
         ws[XLSX.utils.encode_cell({ r, c: 3 })].z = "0"
         ws[XLSX.utils.encode_cell({ r, c: 4 })].z = "#,##0.00"
         ws[XLSX.utils.encode_cell({ r, c: 5 })].z = "#,##0.00"
-      })
+      }
 
-      const totalR = 12
-      ws[XLSX.utils.encode_cell({ r: totalR, c: 5 })].z = "#,##0.00"
+      // ------------------------------------------------------------
+      // 4) BANNER DE TOTAL GENERAL
+      // ------------------------------------------------------------
+      merge(totalRow, 0, 4)
+      for (let c = 0; c <= 5; c++) {
+        styleCell(totalRow, c, {
+          font: { name: "Calibri", sz: 13, bold: true, color: WHITE },
+          fill: { patternType: "solid", fgColor: { rgb: "3BB54A" } },
+          alignment: { vertical: "center", horizontal: c === 5 ? "right" : "right" },
+        })
+      }
+      ws[XLSX.utils.encode_cell({ r: totalRow, c: 5 })].z = "#,##0.00"
+      merge(literalRow, 0, 5)
+      for (let c = 0; c <= 5; c++) {
+        styleCell(literalRow, c, {
+          font: { name: "Calibri", sz: 10, bold: true, color: { rgb: "166534" } },
+          fill: { patternType: "solid", fgColor: { rgb: "DCFCE7" } },
+          alignment: { horizontal: "left", vertical: "center", wrapText: true },
+        })
+      }
+      merge(termsTitleRow, 0, 5)
+      for (let c = 0; c <= 5; c++) {
+        styleCell(termsTitleRow, c, {
+          font: { name: "Calibri", sz: 10, bold: true, color: NAVY },
+          alignment: { horizontal: "left", vertical: "center" },
+          border: { bottom: { style: "medium", color: BORDER } },
+        })
+      }
+      for (let r = termsStart; r < termsStart + termsRows; r++) {
+        merge(r, 0, 5)
+        for (let c = 0; c <= 5; c++) {
+          styleCell(r, c, {
+            font: { name: "Calibri", sz: 9, color: { rgb: "475569" } },
+            alignment: { horizontal: "left", vertical: "top", wrapText: true },
+          })
+        }
+      }
+      merge(firmaRow, 0, 3)
+      for (let c = 0; c <= 3; c++) {
+        styleCell(firmaRow, c, {
+          font: { name: "Calibri", sz: 9, bold: true, color: NAVY },
+          alignment: { horizontal: "left", vertical: "center" },
+          border: { top: { style: "medium", color: NAVY } },
+        })
+      }
 
+      // ------------------------------------------------------------
+      // ANCHO DE COLUMNAS Y ALTURA DE FILAS
+      // ------------------------------------------------------------
+      ws["!cols"] = [
+        { wch: 6 },
+        { wch: 35 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 18 },
+      ]
+      ws["!rows"] = [
+        { hpt: 30 },
+        { hpt: 26 },
+        { hpt: 16 },
+        { hpt: 16 },
+        { hpt: 8 },
+        { hpt: 20 },
+        { hpt: 18 },
+        { hpt: 18 },
+        { hpt: 18 },
+        { hpt: 8 },
+        { hpt: 22 },
+        ...items.map(() => ({ hpt: 20 })),
+        { hpt: 8 },
+        { hpt: 30 },
+        { hpt: 34 },
+        { hpt: 8 },
+        { hpt: 20 },
+        ...Array.from({ length: termsRows }, () => ({ hpt: 30 })),
+        { hpt: 8 },
+        { hpt: 28 },
+        { hpt: 16 },
+      ]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, "Cotizacion")
       const nombreArchivo = `Cotizacion_EstabGroup_${(cliente || "Cliente").replace(/[\\/:*?"<>|]/g, "").trim()}.xlsx`
