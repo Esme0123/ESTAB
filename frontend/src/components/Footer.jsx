@@ -159,11 +159,11 @@ function Footer() {
           derechos reservados
         </p>
         <Link
-          to="/admin/login"
+          to="/login"
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-white/50 transition hover:bg-white/10 hover:text-white"
         >
           <Lock className="h-3 w-3" />
-          Panel de Administración
+          Acceso del personal
         </Link>
       </div>
     </footer>

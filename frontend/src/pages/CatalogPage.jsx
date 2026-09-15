@@ -1,12 +1,26 @@
 import { useEffect, useMemo, useState } from "react"
-import { useSearchParams, useOutletContext } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, Eye, PackageSearch, ImageOff, Check, Plus, Trash2, Calculator } from "lucide-react"
+import {
+  MessageCircle,
+  Eye,
+  PackageSearch,
+  ImageOff,
+  Check,
+  Plus,
+  Trash2,
+  Calculator,
+  Pencil,
+  Power,
+} from "lucide-react"
 import { CATEGORIES, buildWhatsAppUrl, buildMultiQuoteWhatsAppUrl } from "../data/mockProducts"
 import ProductDetailModal from "../components/ProductDetailModal"
 import ProductSearch from "../components/ProductSearch"
 import CotizadorPanel from "../components/CotizadorPanel"
-import { isAuthenticated } from "../lib/auth"
+import ProductFormModal from "../components/ProductFormModal"
+import SuccessModal from "../components/SuccessModal"
+import { isAuthenticated, getStoredUser, isAdminRole } from "../lib/auth"
+import { api } from "../services/api"
 
 const CATEGORY_STYLES = {
   1: {
@@ -35,14 +49,20 @@ const FILTER_STYLES = {
   4: "border-indigo-300 bg-indigo-400 text-white shadow-lg shadow-indigo-400/40",
 }
 
-function CatalogPage() {
-  const { products } = useOutletContext()
+function CatalogPage({ products: allProducts, setProducts }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState("")
   const [selected, setSelected] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState([])
   const [cotizadorOpen, setCotizadorOpen] = useState(false)
   const autenticado = isAuthenticated()
+  const user = getStoredUser()
+  const esAdmin = isAdminRole(user)
+
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [successMsg, setSuccessMsg] = useState("")
+  const [notice, setNotice] = useState("")
 
   const urlCategory = searchParams.get("categoria") || null
   const [activeCategory, setActiveCategory] = useState(urlCategory)
@@ -65,8 +85,8 @@ function CatalogPage() {
   const catName = activeCategory ? findCat(activeCategory)?.nombre : null
 
   const filtered = useMemo(() => {
-    return products.filter((p) => {
-      if (p.estado === "inactivo") return false
+    return allProducts.filter((p) => {
+      if (p.estado === "inactivo" && !esAdmin) return false
       const matchesCategory =
         !activeCategory || String(p.categoria_id) === String(activeCategory)
       const q = searchTerm.toLowerCase().trim()
@@ -78,7 +98,7 @@ function CatalogPage() {
         (cat && cat.nombre.toLowerCase().includes(q))
       return matchesCategory && matchesSearch
     })
-  }, [products, activeCategory, searchTerm])
+  }, [allProducts, activeCategory, searchTerm, esAdmin])
 
   const toggleSelect = (product) => {
     setSelectedProducts((prev) =>
@@ -89,6 +109,76 @@ function CatalogPage() {
   }
 
   const clearSelection = () => setSelectedProducts([])
+
+  const showError = (msg) => {
+    setNotice(msg)
+    setTimeout(() => setNotice(""), 5000)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setFormOpen(true)
+  }
+
+  const openEdit = (p) => {
+    setEditing(p)
+    setSelected(null)
+    setFormOpen(true)
+  }
+
+  const handleSave = async (payload) => {
+    try {
+      if (editing?.id) {
+        const updated = await api.updateProducto(editing.id, payload)
+        setProducts((prev) =>
+          prev.map((p) => (p.id === updated.id ? updated : p))
+        )
+        setSuccessMsg("El producto se actualizó correctamente.")
+      } else {
+        const created = await api.createProducto(payload)
+        setProducts((prev) => [created, ...prev])
+        setSuccessMsg("El producto se creó correctamente.")
+      }
+    } catch (err) {
+      showError(err.message || "Error al guardar el producto.")
+    }
+  }
+
+  const toggleEstado = async (p) => {
+    const nuevoEstado = p.estado === "activo" ? "inactivo" : "activo"
+    try {
+      const updated = await api.updateProducto(p.id, {
+        nombre: p.nombre,
+        descripcion: p.descripcion,
+        precio_referencial: p.precio_referencial,
+        categoria_id: p.categoria_id,
+        estado: nuevoEstado,
+        imagenes: p.imagenes,
+        especificaciones: p.especificaciones,
+      })
+      setProducts((prev) =>
+        prev.map((item) => (item.id === p.id ? updated : item))
+      )
+      setSuccessMsg(
+        nuevoEstado === "activo"
+          ? "El producto se activó correctamente."
+          : "El producto se desactivó correctamente."
+      )
+    } catch (err) {
+      showError(err.message || "Error al cambiar el estado.")
+    }
+  }
+
+  const remove = async (p) => {
+    if (!window.confirm(`¿Eliminar el producto "${p.nombre}"?`)) return
+    try {
+      await api.deleteProducto(p.id)
+      setProducts((prev) => prev.filter((item) => item.id !== p.id))
+      setSuccessMsg("El producto se eliminó correctamente.")
+    } catch (err) {
+      showError(err.message || "Error al eliminar el producto.")
+    }
+  }
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-[#1A1C38]/5 via-slate-100 to-emerald-50/20">
@@ -128,7 +218,7 @@ function CatalogPage() {
           className="relative z-10 -mt-8 mb-6"
         >
           <ProductSearch
-            products={products}
+            products={allProducts}
             value={searchTerm}
             onChange={setSearchTerm}
             onSelectProduct={setSelected}
@@ -136,7 +226,17 @@ function CatalogPage() {
           />
         </motion.div>
 
-        <div className="mb-8 flex flex-wrap gap-2">
+        {notice && (
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-lg bg-pulse/10 px-4 py-2 text-sm font-semibold text-pulse"
+          >
+            {notice}
+          </motion.p>
+        )}
+
+        <div className="mb-8 flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleCategory(null)}
             className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
@@ -160,6 +260,17 @@ function CatalogPage() {
               {cat.emoji} {cat.nombre}
             </button>
           ))}
+
+          {esAdmin && (
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={openCreate}
+              className="ml-auto flex cursor-pointer items-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
+            >
+              <Plus className="h-4 w-4" />
+              Añadir Producto
+            </motion.button>
+          )}
         </div>
 
         {filtered.length === 0 ? (
@@ -182,6 +293,7 @@ function CatalogPage() {
                 const catStyle = CATEGORY_STYLES[product.categoria_id] || CATEGORY_STYLES[3]
                 const firstImage = product.imagenes?.[0]
                 const isSelected = selectedProducts.some((p) => p.id === product.id)
+                const inactivo = product.estado === "inactivo"
                 return (
                   <motion.article
                     key={product.id}
@@ -190,7 +302,9 @@ function CatalogPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.35 }}
-                    className={`group flex flex-col overflow-hidden rounded-2xl border-2 bg-white/95 backdrop-blur-sm shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${catStyle.card}`}
+                    className={`group flex flex-col overflow-hidden rounded-2xl border-2 bg-white/95 backdrop-blur-sm shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${catStyle.card} ${
+                      inactivo ? "opacity-60" : ""
+                    }`}
                   >
                     <button
                       onClick={() => setSelected(product)}
@@ -214,6 +328,11 @@ function CatalogPage() {
                       >
                         {cat?.nombre}
                       </span>
+                      {inactivo && (
+                        <span className="absolute right-3 top-3 rounded-full bg-slate-800 px-3 py-1 text-[11px] font-bold text-white shadow-md">
+                          Inactivo
+                        </span>
+                      )}
                     </button>
 
                     <div className="flex flex-1 flex-col p-5">
@@ -263,6 +382,39 @@ function CatalogPage() {
                           Ver detalle
                         </motion.button>
                       </div>
+
+                      {esAdmin && (
+                        <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3">
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => openEdit(product)}
+                            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-navy/5 px-2 py-2 text-xs font-bold text-navy transition hover:bg-navy/10"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Editar
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => toggleEstado(product)}
+                            className={`flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${
+                              inactivo
+                                ? "bg-brand-green/10 text-brand-green-dark hover:bg-brand-green/20"
+                                : "bg-slate-100 text-pulse hover:bg-pulse/10"
+                            }`}
+                          >
+                            <Power className="h-3.5 w-3.5" />
+                            {inactivo ? "Activar" : "Desactivar"}
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => remove(product)}
+                            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-red-50 px-2 py-2 text-xs font-bold text-red-500 transition hover:bg-red-100"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Eliminar
+                          </motion.button>
+                        </div>
+                      )}
                     </div>
                   </motion.article>
                 )
@@ -273,7 +425,15 @@ function CatalogPage() {
       </div>
 
       <AnimatePresence>
-        {selected && <ProductDetailModal product={selected} onClose={() => setSelected(null)} />}
+        {selected && (
+          <ProductDetailModal
+            product={selected}
+            onClose={() => setSelected(null)}
+            mode={esAdmin ? "admin" : "public"}
+            showPrecio={esAdmin}
+            onEdit={esAdmin ? openEdit : undefined}
+          />
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -330,6 +490,22 @@ function CatalogPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {formOpen && (
+          <ProductFormModal
+            initial={editing}
+            onClose={() => setFormOpen(false)}
+            onSave={handleSave}
+          />
+        )}
+      </AnimatePresence>
+
+      <SuccessModal
+        open={!!successMsg}
+        message={successMsg}
+        onClose={() => setSuccessMsg("")}
+      />
     </section>
   )
 }

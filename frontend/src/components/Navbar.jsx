@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Link, NavLink } from "react-router-dom"
+import { Link, NavLink, useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   Menu,
@@ -12,8 +12,11 @@ import {
   SprayCan,
   ArrowRight,
   MessageCircle,
+  LogOut,
+  Calculator,
 } from "lucide-react"
 import { CATEGORIES, buildGeneralWhatsAppUrl } from "../data/mockProducts"
+import { isAuthenticated, logout, getStoredUser, isAdminRole } from "../lib/auth"
 
 const CATEGORY_ICONS = {
   1: Stethoscope,
@@ -58,6 +61,10 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const dropdownRef = useRef(null)
   const closeTimer = useRef(null)
+  const navigate = useNavigate()
+  const autenticado = isAuthenticated()
+  const user = getStoredUser()
+  const esAdmin = isAdminRole(user)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -88,6 +95,12 @@ function Navbar() {
   const goTo = () => {
     setMenuOpen(false)
     setDropdownOpen(false)
+  }
+
+  const handleLogout = () => {
+    logout()
+    goTo()
+    navigate("/")
   }
 
   return (
@@ -210,15 +223,56 @@ function Navbar() {
             Cotizar
           </a>
 
-          <Link
-            to="/admin/login"
-            title="Acceso de administración"
-            aria-label="Acceso de administración"
-            onClick={goTo}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/50 transition hover:border-brand-green hover:text-brand-green"
-          >
-            <Lock className="h-4 w-4" />
-          </Link>
+          {autenticado && user ? (
+            <>
+              <Link
+                to="/catalogo"
+                title={
+                  esAdmin
+                    ? "Gestión del catálogo y cotizaciones"
+                    : "Generar cotizaciones personalizadas"
+                }
+                onClick={goTo}
+                className="hidden items-center gap-2 rounded-full border border-[#EAB308]/50 bg-[#EAB308]/10 px-4 py-2 text-sm font-bold text-[#EAB308] transition hover:bg-[#EAB308] hover:text-white md:flex"
+              >
+                <Calculator className="h-4 w-4" />
+                Modo Cotizador
+              </Link>
+
+              <span
+                className={`hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold sm:flex ${
+                  esAdmin
+                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)]"
+                    : "border-amber-400/40 bg-amber-400/15 text-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.35)]"
+                }`}
+              >
+                {esAdmin ? "🛡️ Admin" : "💼 Cotizador"}
+              </span>
+
+              <span className="hidden max-w-[140px] truncate text-xs font-medium text-white/60 xl:block">
+                {user.nombre || user.email}
+              </span>
+
+              <button
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/60 transition hover:border-pulse hover:bg-pulse/20 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              title="Acceso del personal"
+              aria-label="Acceso del personal"
+              onClick={goTo}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/50 transition hover:border-brand-green hover:text-brand-green"
+            >
+              <Lock className="h-4 w-4" />
+            </Link>
+          )}
 
           <button
             onClick={() => setMenuOpen((v) => !v)}
@@ -280,6 +334,49 @@ function Navbar() {
                   </Link>
                 ))}
               </div>
+
+              {autenticado && user ? (
+                <div className="mt-3 rounded-xl bg-white/5 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-bold text-white">
+                      {user.nombre || user.email}
+                    </span>
+                    <span
+                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${
+                        esAdmin
+                          ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                          : "border-amber-400/40 bg-amber-400/15 text-amber-300"
+                      }`}
+                    >
+                      {esAdmin ? "🛡️ Admin" : "💼 Cotizador"}
+                    </span>
+                  </div>
+                  <Link
+                    to="/catalogo"
+                    onClick={goTo}
+                    className="flex items-center justify-center gap-2 rounded-full bg-brand-green px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-green-dark"
+                  >
+                    <Calculator className="h-4 w-4" />
+                    Modo Cotizador
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-pulse/50 px-4 py-2 text-sm font-bold text-pulse transition hover:bg-pulse/20"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar Sesión
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={goTo}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                >
+                  <Lock className="h-4 w-4" />
+                  Acceso del personal
+                </Link>
+              )}
             </nav>
           </motion.div>
         )}

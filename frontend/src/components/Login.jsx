@@ -21,7 +21,7 @@ function Login() {
   const [loading, setLoading] = useState(false)
 
   if (isAuthenticated()) {
-    return <Navigate to="/admin" replace />
+    return <Navigate to="/catalogo" replace />
   }
 
   const handleSubmit = async (e) => {
@@ -48,7 +48,7 @@ function Login() {
       } else {
         clearRememberedCredentials()
       }
-      navigate("/admin", { replace: true })
+      navigate("/catalogo", { replace: true })
     } catch (err) {
       setError(err.message || "No se pudo iniciar sesión.")
     } finally {
