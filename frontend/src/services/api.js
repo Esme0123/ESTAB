@@ -1,6 +1,21 @@
-import { PRODUCTS } from "../data/mockProducts"
+const isLocalHost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "")
 
-export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost/backend/api"
+const envUrl = import.meta.env.VITE_API_URL || ""
+const envPointsToLocal = /(^|:\/\/)(localhost|127\.0\.0\.1)([:/]|$)/.test(envUrl)
+
+const canUseEnvUrl = !!envUrl && (!envPointsToLocal || isLocalHost)
+
+export const API_BASE_URL = canUseEnvUrl
+  ? envUrl
+  : isLocalHost
+    ? "http://localhost/backend/api"
+    : "https://estab.com.bo/backend/api"
+
+export const BASE_URL = API_BASE_URL
 
 const TOKEN_KEY = "estab_admin_token"
 
@@ -56,8 +71,6 @@ export const normalizeProducto = (p) => ({
   imagenes: normalizeImagenes(p.imagenes),
   especificaciones: normalizeEspecificaciones(p.especificaciones),
 })
-
-export const mockProductos = () => PRODUCTS.map((p) => ({ ...p }))
 
 export const api = {
   login: (email, password) =>

@@ -9,7 +9,7 @@ import Nosotros from "./pages/Nosotros"
 import CatalogPage from "./pages/CatalogPage"
 import Contacto from "./pages/Contacto"
 import { buildGeneralWhatsAppUrl } from "./data/mockProducts"
-import { api, mockProductos, BASE_URL } from "./services/api"
+import { api, API_BASE_URL } from "./services/api"
 
 const WA_FAB_URL = buildGeneralWhatsAppUrl()
 
@@ -36,21 +36,22 @@ function PublicLayout() {
 }
 
 function App() {
-  const [products, setProducts] = useState(() => mockProductos())
+  const [products, setProducts] = useState([])
+  const [loadError, setLoadError] = useState("")
 
   useEffect(() => {
     let active = true
 
     // Despertar el servidor de Render apenas el usuario abra la página.
-    fetch(`${BASE_URL}/ping.php`).catch(() => {})
+    fetch(`${API_BASE_URL}/ping.php`).catch(() => {})
 
     api
       .getProductos()
       .then((list) => {
-        if (active && list.length > 0) setProducts(list)
+        if (active) setProducts(list)
       })
-      .catch(() => {
-        // Si el backend no está disponible, se mantienen los productos mock.
+      .catch((err) => {
+        if (active) setLoadError(err.message || "No se pudo cargar el catálogo.")
       })
     return () => {
       active = false
@@ -63,7 +64,16 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/nosotros" element={<Nosotros />} />
-          <Route path="/catalogo" element={<CatalogPage products={products} setProducts={setProducts} />} />
+          <Route
+            path="/catalogo"
+            element={
+              <CatalogPage
+                products={products}
+                setProducts={setProducts}
+                loadError={loadError}
+              />
+            }
+          />
           <Route path="/contactenos" element={<Contacto />} />
         </Route>
 

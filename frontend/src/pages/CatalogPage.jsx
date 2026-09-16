@@ -49,7 +49,7 @@ const FILTER_STYLES = {
   4: "border-indigo-300 bg-indigo-400 text-white shadow-lg shadow-indigo-400/40",
 }
 
-function CatalogPage({ products: allProducts, setProducts }) {
+function CatalogPage({ products: allProducts, setProducts, loadError }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState("")
   const [selected, setSelected] = useState(null)
@@ -225,6 +225,16 @@ function CatalogPage({ products: allProducts, setProducts }) {
             placeholder="Buscar por nombre o categoría..."
           />
         </motion.div>
+
+        {loadError && (
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
+          >
+            No se pudo cargar el catálogo desde el servidor: {loadError}
+          </motion.p>
+        )}
 
         {notice && (
           <motion.p
