@@ -1,6 +1,16 @@
 import { useState } from "react"
 import { Navigate, Link, useNavigate } from "react-router-dom"
-import { Lock, Mail, LogIn, ArrowLeft, MessageCircle, Loader2, Check } from "lucide-react"
+import {
+  Lock,
+  Mail,
+  LogIn,
+  ArrowLeft,
+  MessageCircle,
+  Loader2,
+  Check,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 import {
   isAuthenticated,
   setSession,
@@ -19,6 +29,7 @@ function Login() {
   const [remember, setRemember] = useState(!!remembered)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   if (isAuthenticated()) {
     return <Navigate to="/catalogo" replace />
@@ -57,7 +68,7 @@ function Login() {
   }
 
   const inputClass =
-    "w-full rounded-xl border border-white/15 bg-white/10 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-brand-green focus:bg-white/15 focus:ring-2 focus:ring-brand-green/30"
+    "w-full rounded-xl border border-white/15 bg-white/10 py-3 pl-11 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-brand-green focus:bg-white/15 focus:ring-2 focus:ring-brand-green/30"
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-navy px-4">
@@ -102,7 +113,7 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@estabgroup.com"
               autoComplete="username"
-              className={inputClass}
+              className={`${inputClass} pr-4`}
             />
           </div>
 
@@ -110,13 +121,21 @@ function Login() {
           <div className="relative">
             <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
-              className={inputClass}
+              className={`${inputClass} pr-11`}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-white/80"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
 
           <label className="mt-5 flex w-fit cursor-pointer select-none items-center">

@@ -6,14 +6,11 @@ const isLocalHost =
 
 const envUrl = import.meta.env.VITE_API_URL || ""
 const envPointsToLocal = /(^|:\/\/)(localhost|127\.0\.0\.1)([:/]|$)/.test(envUrl)
-
 const canUseEnvUrl = !!envUrl && (!envPointsToLocal || isLocalHost)
 
-export const API_BASE_URL = canUseEnvUrl
-  ? envUrl
-  : isLocalHost
-    ? "http://localhost/backend/api"
-    : "https://estab.com.bo/backend/api"
+// La carpeta 'api' vive en la raíz del servidor, por lo que '/api' resuelve a
+// https://estab.com.bo/api en producción y a localhost/api en desarrollo.
+export const API_BASE_URL = canUseEnvUrl ? envUrl : "/api"
 
 export const BASE_URL = API_BASE_URL
 
