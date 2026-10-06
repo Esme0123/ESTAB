@@ -1,13 +1,15 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Plus, X, Upload, Loader2, Check, ImageOff, Pencil } from "lucide-react"
-import { CATEGORIES } from "../data/mockProducts"
+import { CATEGORIES, PROCEDENCIAS_SUGERIDAS } from "../data/mockProducts"
 import { api } from "../services/api"
 
 const EMPTY_FORM = {
   id: null,
   nombre: "",
   descripcion: "",
+  marca: "",
+  procedencia: "",
   precio_referencial: "",
   categoria_id: CATEGORIES[0].id,
   imagenes: [],
@@ -24,6 +26,8 @@ function ProductFormModal({ initial, onClose, onSave }) {
           id: initial.id,
           nombre: initial.nombre,
           descripcion: initial.descripcion,
+          marca: initial.marca || "",
+          procedencia: initial.procedencia || "",
           precio_referencial: String(initial.precio_referencial ?? ""),
           categoria_id: initial.categoria_id,
           imagenes: [...(initial.imagenes || [])],
@@ -90,6 +94,8 @@ function ProductFormModal({ initial, onClose, onSave }) {
       const payload = {
         nombre: form.nombre,
         descripcion: form.descripcion,
+        marca: form.marca.trim(),
+        procedencia: form.procedencia.trim(),
         precio_referencial: Number(form.precio_referencial) || 0,
         categoria_id: Number(form.categoria_id),
         imagenes: form.imagenes.filter(Boolean),
@@ -168,6 +174,41 @@ function ProductFormModal({ initial, onClose, onSave }) {
             placeholder="Ej: Camilla de exploración con colchoneta acolchada."
             className={inputClass}
           />
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="producto-marca" className="mb-1 block text-sm font-semibold text-navy">
+                Marca
+              </label>
+              <input
+                id="producto-marca"
+                value={form.marca}
+                onChange={(e) => setForm({ ...form, marca: e.target.value })}
+                placeholder="Ej: SAPOLIO, BRISTAR, ARTWORCK, OMO"
+                maxLength={100}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="producto-procedencia" className="mb-1 block text-sm font-semibold text-navy">
+                Procedencia
+              </label>
+              <input
+                id="producto-procedencia"
+                list="procedencias-sugeridas"
+                value={form.procedencia}
+                onChange={(e) => setForm({ ...form, procedencia: e.target.value })}
+                placeholder="Ej: NACIONAL, PERÚ, BRASIL, IMPORTADO"
+                maxLength={100}
+                className={inputClass}
+              />
+              <datalist id="procedencias-sugeridas">
+                {PROCEDENCIAS_SUGERIDAS.map((proc) => (
+                  <option key={proc} value={proc} />
+                ))}
+              </datalist>
+            </div>
+          </div>
 
           <label className="mb-1 mt-4 block text-sm font-semibold text-navy">
             Precio Referencial Interno (Bs)

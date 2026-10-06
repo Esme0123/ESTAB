@@ -27,7 +27,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 -- ---------- Categorias ----------
 CREATE TABLE IF NOT EXISTS categorias (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(120) NOT NULL UNIQUE
+  nombre VARCHAR(120) NOT NULL UNIQUE,
+  descripcion VARCHAR(200) NULL,
+  icono VARCHAR(60) NULL
 ) ENGINE=InnoDB;
 
 -- ---------- Productos ----------
@@ -36,6 +38,8 @@ CREATE TABLE IF NOT EXISTS productos (
   nombre VARCHAR(180) NOT NULL,
   descripcion TEXT,
   precio_referencial DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  marca VARCHAR(100) NULL,
+  procedencia VARCHAR(100) NULL,
   categoria_id INT NOT NULL,
   estado TINYINT NOT NULL DEFAULT 1,
   CONSTRAINT fk_productos_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id)
@@ -63,11 +67,15 @@ CREATE TABLE IF NOT EXISTS producto_especificaciones (
 
 INSERT INTO roles (nombre) VALUES ('Admin'), ('Ventas');
 
-INSERT INTO categorias (nombre) VALUES
-  ('Equipamiento Médico'),
-  ('Mobiliario de Laboratorio y Clínica'),
-  ('Insumos Médicos'),
-  ('Material Corporativo y Limpieza');
+INSERT INTO categorias (id, nombre, descripcion, icono) VALUES
+  (1, 'Equipamiento y Prendas Médicas', 'Equipamiento médico, insumos, prendas y ropa hospitalaria', 'Stethoscope'),
+  (2, 'Mobiliario de Oficina y Clínica', 'Mobiliario ergonómico de oficina, clínico y de laboratorio', 'Building2'),
+  (3, 'Equipos de Computación y Audiovisual', 'Computadoras, laptops, material educativo y equipos audiovisuales', 'Laptop'),
+  (4, 'Material de Escritorio y Papelería', 'Material de escritorio, suministros de oficina y papelería general', 'FileText'),
+  (5, 'Material de Limpieza y Corporativo', 'Insumos de higiene, desinfectantes y productos corporativos', 'Sparkles'),
+  (6, 'Maquinaria Industrial y Ferretería', 'Maquinaria pesada, industrial y herramientas de ferretería', 'Wrench'),
+  (7, 'Electrodomésticos y Material Eléctrico', 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'Zap'),
+  (8, 'Confección y Textiles en General', 'Confección de textiles, uniformes y ropa en general', 'Scissors');
 
 -- Contraseña de ambos usuarios de prueba: password
 INSERT INTO usuarios (nombre, email, password, rol_id) VALUES

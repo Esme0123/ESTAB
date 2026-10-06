@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Search, X, PackageSearch, ImageOff } from "lucide-react"
-import { CATEGORIES } from "../data/mockProducts"
+import { CATEGORIES, findCategoria } from "../data/mockProducts"
 
-const findCat = (id) => CATEGORIES.find((c) => String(c.id) === String(id))
+const findCat = (id, nombre) => findCategoria(id, nombre)
 
 function ProductSearch({
   products,
@@ -33,10 +33,12 @@ function ProductSearch({
     return products
       .filter((p) => {
         if (p.estado === "inactivo") return false
-        const cat = findCat(p.categoria_id)
+        const cat = findCat(p.categoria_id, p.categoria_nombre)
         return (
           p.nombre.toLowerCase().includes(q) ||
           p.descripcion.toLowerCase().includes(q) ||
+          (p.marca || "").toLowerCase().includes(q) ||
+          (p.procedencia || "").toLowerCase().includes(q) ||
           (cat && cat.nombre.toLowerCase().includes(q))
         )
       })

@@ -13,7 +13,7 @@ import {
   Pencil,
   Power,
 } from "lucide-react"
-import { CATEGORIES, buildWhatsAppUrl, buildMultiQuoteWhatsAppUrl } from "../data/mockProducts"
+import { CATEGORIES, findCategoria, buildWhatsAppUrl, buildMultiQuoteWhatsAppUrl } from "../data/mockProducts"
 import ProductDetailModal from "../components/ProductDetailModal"
 import ProductSearch from "../components/ProductSearch"
 import CotizadorPanel from "../components/CotizadorPanel"
@@ -39,6 +39,22 @@ const CATEGORY_STYLES = {
     card: "border-indigo-400/70 hover:border-indigo-500 hover:shadow-indigo-500/10",
     badge: "bg-indigo-400 text-white",
   },
+  5: {
+    card: "border-sky-400/70 hover:border-sky-500 hover:shadow-sky-500/10",
+    badge: "bg-sky-400 text-slate-900",
+  },
+  6: {
+    card: "border-rose-400/70 hover:border-rose-500 hover:shadow-rose-500/10",
+    badge: "bg-rose-400 text-white",
+  },
+  7: {
+    card: "border-orange-400/70 hover:border-orange-500 hover:shadow-orange-500/10",
+    badge: "bg-orange-400 text-slate-900",
+  },
+  8: {
+    card: "border-violet-400/70 hover:border-violet-500 hover:shadow-violet-500/10",
+    badge: "bg-violet-400 text-white",
+  },
 }
 
 const FILTER_STYLES = {
@@ -47,6 +63,10 @@ const FILTER_STYLES = {
   2: "border-cyan-300 bg-cyan-400 text-slate-900 shadow-lg shadow-cyan-400/40",
   3: "border-emerald-300 bg-emerald-400 text-slate-900 shadow-lg shadow-emerald-400/40",
   4: "border-indigo-300 bg-indigo-400 text-white shadow-lg shadow-indigo-400/40",
+  5: "border-sky-300 bg-sky-400 text-slate-900 shadow-lg shadow-sky-400/40",
+  6: "border-rose-300 bg-rose-400 text-white shadow-lg shadow-rose-400/40",
+  7: "border-orange-300 bg-orange-400 text-slate-900 shadow-lg shadow-orange-400/40",
+  8: "border-violet-300 bg-violet-400 text-white shadow-lg shadow-violet-400/40",
 }
 
 function CatalogPage({ products: allProducts, setProducts, loadError }) {
@@ -80,7 +100,7 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
     }
   }
 
-  const findCat = (id) => CATEGORIES.find((c) => String(c.id) === String(id))
+  const findCat = (id, nombre) => findCategoria(id, nombre)
 
   const catName = activeCategory ? findCat(activeCategory)?.nombre : null
 
@@ -90,11 +110,13 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
       const matchesCategory =
         !activeCategory || String(p.categoria_id) === String(activeCategory)
       const q = searchTerm.toLowerCase().trim()
-      const cat = findCat(p.categoria_id)
+      const cat = findCat(p.categoria_id, p.categoria_nombre)
       const matchesSearch =
         !q ||
         p.nombre.toLowerCase().includes(q) ||
         p.descripcion.toLowerCase().includes(q) ||
+        (p.marca || "").toLowerCase().includes(q) ||
+        (p.procedencia || "").toLowerCase().includes(q) ||
         (cat && cat.nombre.toLowerCase().includes(q))
       return matchesCategory && matchesSearch
     })
@@ -150,6 +172,8 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
       const updated = await api.updateProducto(p.id, {
         nombre: p.nombre,
         descripcion: p.descripcion,
+        marca: p.marca,
+        procedencia: p.procedencia,
         precio_referencial: p.precio_referencial,
         categoria_id: p.categoria_id,
         estado: nuevoEstado,
@@ -299,7 +323,7 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <AnimatePresence mode="popLayout">
               {filtered.map((product) => {
-                const cat = findCat(product.categoria_id)
+                const cat = findCat(product.categoria_id, product.categoria_nombre)
                 const catStyle = CATEGORY_STYLES[product.categoria_id] || CATEGORY_STYLES[3]
                 const firstImage = product.imagenes?.[0]
                 const isSelected = selectedProducts.some((p) => p.id === product.id)
@@ -350,6 +374,21 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
                       <p className="mt-2 flex-1 text-sm text-slate-500 line-clamp-2">
                         {product.descripcion}
                       </p>
+
+                      {(product.marca || product.procedencia) && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {product.marca && (
+                            <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-600 ring-1 ring-slate-200">
+                              Marca: {product.marca}
+                            </span>
+                          )}
+                          {product.procedencia && (
+                            <span className="rounded-md bg-brand-green/10 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-green-dark ring-1 ring-brand-green/20">
+                              Proc: {product.procedencia}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       <div className="mt-4 space-y-2">
                         <motion.a

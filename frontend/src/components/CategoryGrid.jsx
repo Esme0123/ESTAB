@@ -34,7 +34,7 @@ function CategoryGrid() {
             Nuestras Áreas de Especialización
           </h2>
           <p className="mt-3 text-slate-500">
-            Cuatro líneas de negocio para clínicas, laboratorios y empresas.
+            Ocho líneas de negocio para clínicas, laboratorios, empresas e industria.
           </p>
         </motion.div>
 
@@ -54,12 +54,25 @@ function CategoryGrid() {
                   className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-[#13152B] shadow-xl shadow-navy/20 transition-shadow duration-300 hover:shadow-2xl hover:shadow-[#13152B]/40"
                 >
                   <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={cat.imagen}
-                      alt={cat.nombre}
-                      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.08]"
-                      loading="lazy"
-                    />
+                    {cat.imagen ? (
+                      <img
+                        src={cat.imagen}
+                        alt={cat.nombre}
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.08]"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className={`h-full w-full bg-gradient-to-br ${cat.gradiente} transition-transform duration-500 ease-out group-hover:scale-[1.08]`}
+                      >
+                        <span className="flex h-full w-full items-center justify-center text-6xl opacity-40">
+                          {cat.emoji}
+                        </span>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#13152B] via-navy/10 to-transparent" />
                     <span
                       className={`absolute left-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl ring-1 ring-white/20 backdrop-blur-md ${cat.colorFondo}`}

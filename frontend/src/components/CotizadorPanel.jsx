@@ -15,7 +15,7 @@ import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 import * as XLSX from "xlsx-js-style"
 import { numeroALetras } from "../utils/numberToLiteral"
-import { CATEGORIES, WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
+import { CATEGORIES, UNIDADES, WHATSAPP_NUMBER, EMAIL_CONTACT } from "../data/mockProducts"
 
 const EMPRESA_NOMBRE = "ESTAB GROUP S.R.L."
 const EMPRESA_NIT = "1029129025"
@@ -23,6 +23,7 @@ const EMPRESA_DIRECCION =
   "Ciudad Satélite C. Fernando Caballero # 1158, El Alto - La Paz, Bolivia"
 const EMPRESA_TELEFONO = "+591 71814954"
 const LOGO_URL = "/logo_nombre_2_transparent.png"
+const LOGO_ISOTIPO_URL = "/logo-estab.jpeg"
 const DIAS_VALIDEZ = 15
 
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
@@ -65,9 +66,9 @@ const normalizarTelefono = (raw) => {
   return `591${t}`
 }
 
-async function cargarLogo() {
+async function cargarLogo(url = LOGO_URL) {
   try {
-    const res = await fetch(LOGO_URL)
+    const res = await fetch(url)
     const blob = await res.blob()
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -78,11 +79,32 @@ async function cargarLogo() {
     const img = new Image()
     img.src = dataUrl
     await img.decode()
-    return { dataUrl, w: img.naturalWidth, h: img.naturalHeight }
+    const formato =
+      (String(dataUrl).match(/^data:image\/(png|jpe?g|gif|bmp)/i)?.[1] || "png")
+        .toUpperCase()
+        .replace("JPG", "JPEG")
+    return { dataUrl, w: img.naturalWidth, h: img.naturalHeight, formato }
   } catch {
     return null
   }
 }
+
+const generarCorrelativo = () => {
+  const d = new Date()
+  const fecha = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(
+    d.getDate()
+  ).padStart(2, "0")}`
+  const serie = String(Math.floor(Math.random() * 9000) + 1000)
+  return `EG-${fecha}-${serie}`
+}
+
+const detalleItem = (it) =>
+  [it.nombre, ...(it.especificaciones || []).map((s) => `• ${s}`)].join("\n")
+
+const fichaItem = (it) =>
+  [it.marca ? `Marca: ${it.marca}` : "", it.procedencia ? `Proc: ${it.procedencia}` : ""]
+    .filter(Boolean)
+    .join(" · ")
 
 function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "interno" }) {
   const [cliente, setCliente] = useState("")
@@ -91,6 +113,7 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
   const [telefonoCliente, setTelefonoCliente] = useState("")
   const [telefonoError, setTelefonoError] = useState(false)
   const [fechaValidez, setFechaValidez] = useState(fechaPorDefecto)
+  const [correlativo] = useState(generarCorrelativo)
   const [exportando, setExportando] = useState(null)
   const telefonoRef = useRef(null)
 
@@ -100,7 +123,11 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       id: p.id,
       nombre: p.nombre,
       categoria: nombreCategoria(p),
+      especificaciones: [...(p.especificaciones || [])],
       cantidad: 1,
+      unidad: "UNIDAD",
+      marca: p.marca || "",
+      procedencia: p.procedencia || "",
       precioUnitario: round2(p.precio_referencial),
     }))
   )
@@ -146,55 +173,73 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         }
       }
 
-      const logo = await cargarLogo()
+      const [logo, isotipo] = await Promise.all([
+        cargarLogo(),
+        cargarLogo(LOGO_ISOTIPO_URL),
+      ])
 
       const altoBanner = 104
       doc.setFillColor(26, 28, 56)
       doc.rect(0, 0, pageW, altoBanner, "F")
 
-      let nombreX = margin
       if (logo) {
-        const altoLogo = 54
-        const anchoLogo = Math.min((altoLogo * logo.w) / logo.h, 168)
-        doc.addImage(logo.dataUrl, "PNG", margin, (altoBanner - altoLogo) / 2, anchoLogo, altoLogo)
-        nombreX = margin + anchoLogo + 16
-      } else {
-        nombreX = margin
+        const altoLogo = 60
+        const anchoLogo = Math.min((altoLogo * logo.w) / logo.h, 200)
+        doc.addImage(
+          logo.dataUrl,
+          logo.formato,
+          margin,
+          (altoBanner - altoLogo) / 2,
+          anchoLogo,
+          altoLogo
+        )
       }
 
-      const anchoIzquierda = Math.max(110, pageW - nombreX - 168)
-
+      // Datos institucionales a la derecha
+      const xDer = pageW - margin
+      const anchoDerecha = 255
+      let ly = 30
       doc.setTextColor(255, 255, 255)
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(19)
-      doc.text(EMPRESA_NOMBRE, nombreX, 46)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(8)
-      doc.text(`NIT: ${EMPRESA_NIT}`, nombreX, 66)
-      doc.text(
-        doc.splitTextToSize(`Dirección: ${EMPRESA_DIRECCION}`, anchoIzquierda),
-        nombreX,
-        80
-      )
-
       doc.setFont("helvetica", "bold")
       doc.setFontSize(15)
-      doc.text("COTIZACIÓN", pageW - margin, 46, { align: "right" })
+      doc.text(EMPRESA_NOMBRE, xDer, ly, { align: "right" })
+      ly += 15
       doc.setFont("helvetica", "normal")
-      doc.setFontSize(9)
-      doc.setTextColor(234, 179, 8)
-      doc.text(`Fecha: ${formatFecha(hoyISO())}`, pageW - margin, 62, {
-        align: "right",
+      doc.setFontSize(8.5)
+      doc.setTextColor(226, 232, 240)
+      doc.text(`NIT: ${EMPRESA_NIT}`, xDer, ly, { align: "right" })
+      ly += 12
+      doc.splitTextToSize(`Dirección: ${EMPRESA_DIRECCION}`, anchoDerecha).forEach((linea) => {
+        doc.text(linea, xDer, ly, { align: "right" })
+        ly += 10
       })
-      doc.setTextColor(255, 255, 255)
-      doc.text(`Validez: ${formatFecha(fechaValidez)}`, pageW - margin, 78, {
+      doc.setTextColor(234, 179, 8)
+      doc.text(`Tel/WhatsApp: ${EMPRESA_TELEFONO}  ·  ${EMAIL_CONTACT}`, xDer, ly, {
         align: "right",
       })
 
+      // Título de la cotización
+      y = 128
       doc.setTextColor(26, 28, 56)
       doc.setFont("helvetica", "bold")
+      doc.setFontSize(14)
+      doc.text("COTIZACIÓN DE PRODUCTOS Y SERVICIOS", pageW / 2, y, { align: "center" })
+      doc.setDrawColor(59, 181, 74)
+      doc.setLineWidth(2)
+      doc.line(pageW / 2 - 150, y + 8, pageW / 2 + 150, y + 8)
+
+      y += 30
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(9)
+      doc.setTextColor(71, 85, 105)
+      doc.text(`Fecha de emisión: ${formatFecha(hoyISO())}`, margin, y)
+      doc.setFont("helvetica", "bold")
+      doc.setTextColor(26, 28, 56)
+      doc.text(`N° de Cotización: ${correlativo}`, pageW - margin, y, { align: "right" })
+
+      y += 20
+      doc.setFont("helvetica", "bold")
       doc.setFontSize(10)
-      y = 118
       doc.text("DATOS DEL CLIENTE", margin, y)
       doc.setLineWidth(0.6)
       doc.setDrawColor(26, 28, 56)
@@ -222,40 +267,47 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         margin: { left: margin, right: margin },
         head: [
           [
-            "N°",
-            "Producto",
-            "Categoría",
-            "Cantidad",
-            "Precio Unit. (Bs)",
-            "Subtotal (Bs)",
+            "ITEM",
+            "CANT.",
+            "UNIDAD",
+            "DETALLE / ESPECIFICACIONES",
+            "MARCA",
+            "PROCEDENCIA",
+            "P. UNIT (Bs)",
+            "SUBTOTAL (Bs)",
           ],
         ],
         body: items.map((it, i) => [
           i + 1,
-          it.nombre,
-          it.categoria,
           it.cantidad,
+          it.unidad,
+          detalleItem(it),
+          it.marca || "—",
+          it.procedencia || "—",
           formatNumero(it.precioUnitario),
           formatNumero(it.cantidad * it.precioUnitario),
         ]),
         theme: "grid",
         showHead: "everyPage",
         headStyles: {
-          fillColor: [26, 28, 56],
+          fillColor: [22, 163, 74],
           textColor: [255, 255, 255],
           fontStyle: "bold",
-          fontSize: 9,
+          fontSize: 8,
           halign: "center",
+          cellPadding: 5,
         },
-        alternateRowStyles: { fillColor: [241, 245, 249] },
-        styles: { font: "helvetica", fontSize: 8.5, cellPadding: 6 },
+        alternateRowStyles: { fillColor: [240, 253, 244] },
+        styles: { font: "helvetica", fontSize: 8, cellPadding: 5, lineColor: [209, 250, 229] },
         columnStyles: {
-          0: { halign: "center", cellWidth: 28 },
-          3: { halign: "center", cellWidth: 60 },
-          4: { halign: "right", cellWidth: 85 },
-          5: { halign: "right", cellWidth: 85, fontStyle: "bold" },
-          1: { cellWidth: "auto" },
-          2: { cellWidth: "auto" },
+          0: { halign: "center", cellWidth: 26 },
+          1: { halign: "center", cellWidth: 34 },
+          2: { halign: "center", cellWidth: 52 },
+          3: { cellWidth: "auto", valign: "top" },
+          4: { halign: "center", cellWidth: 58, valign: "top" },
+          5: { halign: "center", cellWidth: 62, valign: "top" },
+          6: { halign: "right", cellWidth: 52 },
+          7: { halign: "right", cellWidth: 56, fontStyle: "bold" },
         },
       })
 
@@ -329,7 +381,10 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       doc.text("Asesor Comercial Estab Group S.R.L.", margin, y + 52)
       doc.setFont("helvetica", "normal")
       doc.setFontSize(8.5)
-      doc.text(`Fecha de emisión: ${formatFecha(hoyISO())}`, pageW - margin, y + 40, {
+      doc.text(`N° de Cotización: ${correlativo}`, pageW - margin, y + 40, {
+        align: "right",
+      })
+      doc.text(`Fecha de emisión: ${formatFecha(hoyISO())}  ·  Validez: ${formatFecha(fechaValidez)}`, pageW - margin, y + 52, {
         align: "right",
       })
 
@@ -359,7 +414,33 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         align: "right",
       })
 
-      doc.save(`Cotizacion_EstabGroup_${(cliente || "Cliente").replace(/[\\/:*?"<>|]/g, "").trim()}.pdf`)
+      // Marca de agua institucional (isotipo ampliado, opacidad muy baja)
+      const imagenMarca = isotipo || logo
+      const paginas = doc.getNumberOfPages()
+      for (let i = 1; i <= paginas; i++) {
+        if (!imagenMarca) break
+        doc.setPage(i)
+        const maxW = pageW * 0.62
+        const maxH = pageH * 0.62
+        let w = maxW
+        let h = (maxW * imagenMarca.h) / imagenMarca.w
+        if (h > maxH) {
+          h = maxH
+          w = (maxH * imagenMarca.w) / imagenMarca.h
+        }
+        doc.setGState(new doc.GState({ opacity: 0.09 }))
+        doc.addImage(
+          imagenMarca.dataUrl,
+          imagenMarca.formato,
+          (pageW - w) / 2,
+          (pageH - h) / 2,
+          w,
+          h
+        )
+        doc.setGState(new doc.GState({ opacity: 1 }))
+      }
+
+      doc.save(`Cotizacion_EstabGroup_${hoyISO().replace(/-/g, "")}.pdf`)
     } finally {
       setExportando(null)
     }
@@ -375,38 +456,49 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       const BORDER = { rgb: "CBD5E1" }
 
       const filas = [
-        [EMPRESA_NOMBRE, "", "", "", "", ""],
-        ["COTIZACIÓN INSTITUCIONAL", "", "", "", "", ""],
-        [`Dirección: ${EMPRESA_DIRECCION}`, "", "", "", "", ""],
-        [`NIT: ${EMPRESA_NIT}   ·   ${EMAIL_CONTACT}`, "", "", "", "", ""],
+        [EMPRESA_NOMBRE, "", "", "", "", "", "", ""],
+        ["COTIZACIÓN DE PRODUCTOS Y SERVICIOS", "", "", "", "", "", "", ""],
+        [`Dirección: ${EMPRESA_DIRECCION}`, "", "", "", "", "", "", ""],
+        [`NIT: ${EMPRESA_NIT}   ·   ${EMPRESA_TELEFONO}   ·   ${EMAIL_CONTACT}`, "", "", "", "", "", "", ""],
         [],
-        ["DATOS DEL CLIENTE", "", "", "", "", ""],
-        ["Cliente:", cliente || "—", "", "", "Fecha de emisión:", formatFecha(hoyISO())],
-        ["NIT / CI:", nitCi || "—", "", "", "Fecha de validez:", formatFecha(fechaValidez)],
-        ["Atención a:", atencion || "—", "", "", "", ""],
+        ["DATOS DEL CLIENTE", "", "", "", "", "", "", ""],
+        ["Cliente:", cliente || "—", "", "", "Fecha de emisión:", formatFecha(hoyISO()), "", ""],
+        ["NIT / CI:", nitCi || "—", "", "", "Fecha de validez:", formatFecha(fechaValidez), "", ""],
+        ["Atención a:", atencion || "—", "", "", "N° de Cotización:", correlativo, "", ""],
         [],
-        ["N°", "Producto", "Categoría", "Cantidad", "Precio Unitario (Bs)", "Subtotal (Bs)"],
+        [
+          "ITEM",
+          "CANTIDAD",
+          "UNIDAD",
+          "DETALLE / ESPECIFICACIONES",
+          "MARCA",
+          "PROCEDENCIA",
+          "PRECIO UNITARIO (Bs)",
+          "SUBTOTAL (Bs)",
+        ],
         ...items.map((it, i) => [
           i + 1,
-          it.nombre,
-          it.categoria,
           it.cantidad,
+          it.unidad,
+          detalleItem(it),
+          it.marca || "",
+          it.procedencia || "",
           round2(it.precioUnitario),
           round2(it.cantidad * it.precioUnitario),
         ]),
         [],
-        ["TOTAL GENERAL (Bs):", "", "", "", "", round2(total)],
-        ["SON: " + totalLiteral, "", "", "", "", ""],
+        ["TOTAL GENERAL (Bs):", "", "", "", "", "", "", round2(total)],
+        ["SON: " + totalLiteral, "", "", "", "", "", "", ""],
         [],
-        ["TÉRMINOS DE LA COTIZACIÓN", "", "", "", "", ""],
-        ["• La presente cotización es una oferta no vinculante y está sujeta a confirmación de stock y disponibilidad.", "", "", "", "", ""],
-        ["• La validez de los precios es de 15 días calendario a partir de la fecha de emisión.", "", "", "", "", ""],
-        ["• Plazo de entrega estimado de 5 a 10 días hábiles, previa confirmación del pedido.", "", "", "", "", ""],
-        ["• Forma de pago: 50% de anticipo y saldo contra entrega (depósito o transferencia bancaria).", "", "", "", "", ""],
-        ["• No incluye instalación ni transporte, salvo acuerdo previo con el asesor comercial.", "", "", "", "", ""],
+        ["TÉRMINOS DE LA COTIZACIÓN", "", "", "", "", "", "", ""],
+        ["• La presente cotización es una oferta no vinculante y está sujeta a confirmación de stock y disponibilidad.", "", "", "", "", "", "", ""],
+        ["• La validez de los precios es de 15 días calendario a partir de la fecha de emisión.", "", "", "", "", "", "", ""],
+        ["• Plazo de entrega estimado de 5 a 10 días hábiles, previa confirmación del pedido.", "", "", "", "", "", "", ""],
+        ["• Forma de pago: 50% de anticipo y saldo contra entrega (depósito o transferencia bancaria).", "", "", "", "", "", "", ""],
+        ["• No incluye instalación ni transporte, salvo acuerdo previo con el asesor comercial.", "", "", "", "", "", "", ""],
         [],
-        ["Firma y sello del vendedor", "", "", "", "", ""],
-        ["Asesor Comercial Estab Group S.R.L.", "", "", "", "", ""],
+        ["Firma y sello del vendedor", "", "", "", "", `N° ${correlativo}`, "", ""],
+        ["Asesor Comercial Estab Group S.R.L.", "", "", "", "", `Fecha: ${formatFecha(hoyISO())}`, "", ""],
       ]
 
       const ws = XLSX.utils.aoa_to_sheet(filas)
@@ -418,20 +510,14 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       const merge = (r, c1, c2) =>
         ws["!merges"] = [...(ws["!merges"] || []), { s: { r, c: c1 }, e: { r, c: c2 } }]
 
-      const caption = {
-        font: { name: "Calibri", sz: 9, bold: true, color: WHITE },
-        fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
-        alignment: { horizontal: "center", vertical: "center", wrapText: true },
-      }
-
       // ------------------------------------------------------------
       // 1) ENCABEZADO PRINCIPAL (filas 0-3), fondo navy
       // ------------------------------------------------------------
       for (let r = 0; r <= 3; r++) {
-        merge(r, 0, 5)
-        for (let c = 0; c <= 5; c++) {
+        merge(r, 0, 7)
+        for (let c = 0; c <= 7; c++) {
           styleCell(r, c, {
-            font: { name: "Calibri", sz: r === 0 ? 18 : r === 1 ? 14 : 10, bold: r === 0 || r === 1, color: r === 1 ? GOLD : WHITE },
+            font: { name: "Calibri", sz: r === 0 ? 18 : r === 1 ? 13 : 10, bold: r === 0 || r === 1, color: r === 1 ? GOLD : WHITE },
             fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
             alignment: { horizontal: r === 1 || r === 2 ? "left" : "center", vertical: "center" },
             border: { bottom: { style: "hair", color: { rgb: "3D4056" } } },
@@ -442,8 +528,8 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       // ------------------------------------------------------------
       // 2) DATOS DEL CLIENTE (filas 5-8)
       // ------------------------------------------------------------
-      merge(5, 0, 5)
-      for (let c = 0; c <= 5; c++) {
+      merge(5, 0, 7)
+      for (let c = 0; c <= 7; c++) {
         styleCell(5, c, {
           font: { name: "Calibri", sz: 11, bold: true, color: NAVY },
           alignment: { horizontal: "left", vertical: "center" },
@@ -451,15 +537,16 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         })
       }
       for (let r = 6; r <= 8; r++) {
-        for (let c = 0; c <= 5; c++) {
+        merge(r, 1, 3)
+        merge(r, 5, 7)
+        for (let c = 0; c <= 7; c++) {
           styleCell(r, c, {
             font: { name: "Calibri", sz: 10, color: { rgb: "334155" } },
-            alignment: { vertical: "center", horizontal: c === 0 || c === 4 ? "left" : "left" },
+            alignment: { vertical: "center", horizontal: "left" },
           })
         }
         styleCell(r, 0, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center" } })
         styleCell(r, 4, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center", horizontal: "right" } })
-        styleCell(r, 5, { font: { name: "Calibri", sz: 10, bold: true, color: NAVY }, alignment: { vertical: "center", horizontal: "left" } })
       }
 
       // ------------------------------------------------------------
@@ -475,55 +562,57 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       const termsRows = 5
       const firmaRow = termsStart + termsRows + 1
 
-      for (let c = 0; c <= 5; c++) {
+      for (let c = 0; c <= 7; c++) {
         styleCell(headerRow, c, {
-          ...caption,
           font: { name: "Calibri", sz: 10, bold: true, color: WHITE },
+          fill: { patternType: "solid", fgColor: { rgb: "16A34A" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: { top: { style: "thin", color: { rgb: "15803D" } }, bottom: { style: "thin", color: { rgb: "15803D" } } },
         })
       }
       for (let r = firstData; r <= lastData; r++) {
         const esPar = (r - firstData) % 2 === 1
-        for (let c = 0; c <= 5; c++) {
-          const esMonto = c === 4 || c === 5
+        for (let c = 0; c <= 7; c++) {
+          const esMonto = c === 6 || c === 7
           const cell = ws[XLSX.utils.encode_cell({ r, c })]
           cell.s = {
             font: { name: "Calibri", sz: 10, bold: esMonto, color: { rgb: esMonto ? "1A1C38" : "334155" } },
             fill: { patternType: "solid", fgColor: { rgb: esPar ? "F8FAFC" : "FFFFFF" } },
             alignment: {
-              horizontal: c === 0 || c === 3 ? "center" : esMonto ? "right" : "left",
+              horizontal: c <= 2 || c === 4 || c === 5 ? "center" : esMonto ? "right" : "left",
               vertical: "center",
-              wrapText: c === 1,
+              wrapText: c === 3,
             },
             border: { top: { style: "hair", color: BORDER }, bottom: { style: "hair", color: BORDER } },
           }
         }
-        ws[XLSX.utils.encode_cell({ r, c: 3 })].z = "0"
-        ws[XLSX.utils.encode_cell({ r, c: 4 })].z = "#,##0.00"
-        ws[XLSX.utils.encode_cell({ r, c: 5 })].z = "#,##0.00"
+        ws[XLSX.utils.encode_cell({ r, c: 1 })].z = "0"
+        ws[XLSX.utils.encode_cell({ r, c: 6 })].z = "#,##0.00"
+        ws[XLSX.utils.encode_cell({ r, c: 7 })].z = "#,##0.00"
       }
 
       // ------------------------------------------------------------
       // 4) BANNER DE TOTAL GENERAL
       // ------------------------------------------------------------
-      merge(totalRow, 0, 4)
-      for (let c = 0; c <= 5; c++) {
+      merge(totalRow, 0, 6)
+      for (let c = 0; c <= 7; c++) {
         styleCell(totalRow, c, {
           font: { name: "Calibri", sz: 13, bold: true, color: WHITE },
-          fill: { patternType: "solid", fgColor: { rgb: "3BB54A" } },
-          alignment: { vertical: "center", horizontal: c === 5 ? "right" : "right" },
+          fill: { patternType: "solid", fgColor: { rgb: "16A34A" } },
+          alignment: { vertical: "center", horizontal: c === 7 ? "right" : "left" },
         })
       }
-      ws[XLSX.utils.encode_cell({ r: totalRow, c: 5 })].z = "#,##0.00"
-      merge(literalRow, 0, 5)
-      for (let c = 0; c <= 5; c++) {
+      ws[XLSX.utils.encode_cell({ r: totalRow, c: 7 })].z = "#,##0.00"
+      merge(literalRow, 0, 7)
+      for (let c = 0; c <= 7; c++) {
         styleCell(literalRow, c, {
           font: { name: "Calibri", sz: 10, bold: true, color: { rgb: "166534" } },
           fill: { patternType: "solid", fgColor: { rgb: "DCFCE7" } },
           alignment: { horizontal: "left", vertical: "center", wrapText: true },
         })
       }
-      merge(termsTitleRow, 0, 5)
-      for (let c = 0; c <= 5; c++) {
+      merge(termsTitleRow, 0, 7)
+      for (let c = 0; c <= 7; c++) {
         styleCell(termsTitleRow, c, {
           font: { name: "Calibri", sz: 10, bold: true, color: NAVY },
           alignment: { horizontal: "left", vertical: "center" },
@@ -531,19 +620,20 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         })
       }
       for (let r = termsStart; r < termsStart + termsRows; r++) {
-        merge(r, 0, 5)
-        for (let c = 0; c <= 5; c++) {
+        merge(r, 0, 7)
+        for (let c = 0; c <= 7; c++) {
           styleCell(r, c, {
             font: { name: "Calibri", sz: 9, color: { rgb: "475569" } },
             alignment: { horizontal: "left", vertical: "top", wrapText: true },
           })
         }
       }
-      merge(firmaRow, 0, 3)
-      for (let c = 0; c <= 3; c++) {
+      merge(firmaRow, 0, 4)
+      merge(firmaRow, 5, 7)
+      for (let c = 0; c <= 7; c++) {
         styleCell(firmaRow, c, {
           font: { name: "Calibri", sz: 9, bold: true, color: NAVY },
-          alignment: { horizontal: "left", vertical: "center" },
+          alignment: { horizontal: c >= 5 ? "right" : "left", vertical: "center" },
           border: { top: { style: "medium", color: NAVY } },
         })
       }
@@ -553,9 +643,11 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       // ------------------------------------------------------------
       ws["!cols"] = [
         { wch: 6 },
-        { wch: 35 },
-        { wch: 25 },
+        { wch: 10 },
         { wch: 12 },
+        { wch: 46 },
+        { wch: 16 },
+        { wch: 16 },
         { wch: 18 },
         { wch: 18 },
       ]
@@ -570,8 +662,10 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         { hpt: 18 },
         { hpt: 18 },
         { hpt: 8 },
-        { hpt: 22 },
-        ...items.map(() => ({ hpt: 20 })),
+        { hpt: 26 },
+        ...items.map((it) => ({
+          hpt: it.especificaciones?.length ? 20 + it.especificaciones.length * 12 : 20,
+        })),
         { hpt: 8 },
         { hpt: 30 },
         { hpt: 34 },
@@ -584,8 +678,7 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       ]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, "Cotizacion")
-      const nombreArchivo = `Cotizacion_EstabGroup_${(cliente || "Cliente").replace(/[\\/:*?"<>|]/g, "").trim()}.xlsx`
-      XLSX.writeFile(wb, nombreArchivo)
+      XLSX.writeFile(wb, `Cotizacion_EstabGroup_${hoyISO().replace(/-/g, "")}.xlsx`)
     } finally {
       setExportando(null)
     }
@@ -607,12 +700,13 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
     }
 
     const lineas = items
-      .map(
-        (it, i) =>
-          `${i + 1}. *${it.nombre}* — ${it.cantidad} und. × Bs. ${formatNumero(
-            it.precioUnitario
-          )} = Bs. ${formatNumero(it.cantidad * it.precioUnitario)}`
-      )
+      .map((it, i) => {
+        const detalle = `${i + 1}. *${it.nombre}* — ${it.cantidad} ${it.unidad} × Bs. ${formatNumero(
+          it.precioUnitario
+        )} = Bs. ${formatNumero(it.cantidad * it.precioUnitario)}`
+        const ficha = fichaItem(it)
+        return ficha ? `${detalle}\n   ${ficha}` : detalle
+      })
       .join("\n")
 
     const resumen = [
@@ -820,12 +914,15 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left text-sm">
+                <table className="w-full min-w-[1180px] text-left text-sm">
                   <thead className="bg-[#1A1C38] text-white">
                     <tr>
                       <th className="px-4 py-3 font-semibold">Producto</th>
                       <th className="px-4 py-3 font-semibold">Categoría</th>
                       <th className="px-4 py-3 font-semibold">Cantidad</th>
+                      <th className="px-4 py-3 font-semibold">Unidad</th>
+                      <th className="px-4 py-3 font-semibold">Marca</th>
+                      <th className="px-4 py-3 font-semibold">Procedencia</th>
                       <th className="px-4 py-3 font-semibold">Precio Unitario (Bs)</th>
                       <th className="px-4 py-3 text-right font-semibold">Subtotal</th>
                       <th className="px-4 py-3 text-center font-semibold">Acciones</th>
@@ -855,6 +952,42 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
                             }
                             className="w-20 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-sm font-bold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
                             aria-label={`Cantidad de ${it.nombre}`}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            value={it.unidad}
+                            onChange={(e) => updateItem(it.key, { unidad: e.target.value })}
+                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-bold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+                            aria-label={`Unidad de ${it.nombre}`}
+                          >
+                            {UNIDADES.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            maxLength={100}
+                            value={it.marca}
+                            onChange={(e) => updateItem(it.key, { marca: e.target.value })}
+                            placeholder="Ej: SAPOLIO"
+                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+                            aria-label={`Marca de ${it.nombre}`}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            maxLength={100}
+                            value={it.procedencia}
+                            onChange={(e) => updateItem(it.key, { procedencia: e.target.value })}
+                            placeholder="Ej: NACIONAL"
+                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+                            aria-label={`Procedencia de ${it.nombre}`}
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -897,7 +1030,7 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
 
             <div className="border-t border-slate-100 px-5 py-3 text-right text-sm">
               <span className="text-slate-400">
-                Los precios unitarios se pueden negociar en tiempo real antes de exportar.
+                Ajusta cantidad, unidad, marca, procedencia y precios en tiempo real antes de exportar.
               </span>
             </div>
           </section>

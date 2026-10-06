@@ -61,12 +61,26 @@ export const normalizeProducto = (p) => ({
   id: p.id,
   nombre: p.nombre,
   descripcion: p.descripcion || "",
+  marca: p.marca || "",
+  procedencia: p.procedencia || "",
   precio_referencial: Number(p.precio_referencial || 0),
   categoria_id: Number(p.categoria_id),
   categoria_nombre: p.categoria_nombre || "",
   estado: p.estado === 0 || p.estado === "inactivo" ? "inactivo" : "activo",
   imagenes: normalizeImagenes(p.imagenes),
   especificaciones: normalizeEspecificaciones(p.especificaciones),
+})
+
+const toProductoPayload = (producto) => ({
+  nombre: producto.nombre,
+  descripcion: producto.descripcion,
+  marca: producto.marca || "",
+  procedencia: producto.procedencia || "",
+  precio_referencial: producto.precio_referencial,
+  categoria_id: producto.categoria_id,
+  estado: producto.estado === "inactivo" ? 0 : 1,
+  imagenes: producto.imagenes,
+  especificaciones: producto.especificaciones,
 })
 
 export const api = {
@@ -87,15 +101,7 @@ export const api = {
   createProducto: async (producto) => {
     const data = await request("/productos.php", {
       method: "POST",
-      body: {
-        nombre: producto.nombre,
-        descripcion: producto.descripcion,
-        precio_referencial: producto.precio_referencial,
-        categoria_id: producto.categoria_id,
-        estado: producto.estado === "inactivo" ? 0 : 1,
-        imagenes: producto.imagenes,
-        especificaciones: producto.especificaciones,
-      },
+      body: toProductoPayload(producto),
     })
     return normalizeProducto(data)
   },
@@ -103,15 +109,7 @@ export const api = {
   updateProducto: async (id, producto) => {
     const data = await request(`/productos.php?id=${id}`, {
       method: "PUT",
-      body: {
-        nombre: producto.nombre,
-        descripcion: producto.descripcion,
-        precio_referencial: producto.precio_referencial,
-        categoria_id: producto.categoria_id,
-        estado: producto.estado === "inactivo" ? 0 : 1,
-        imagenes: producto.imagenes,
-        especificaciones: producto.especificaciones,
-      },
+      body: toProductoPayload(producto),
     })
     return normalizeProducto(data)
   },

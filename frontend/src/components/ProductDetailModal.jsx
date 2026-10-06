@@ -10,17 +10,25 @@ import {
   ChevronRight,
   ImageOff,
   Stethoscope,
-  FlaskConical,
-  Syringe,
-  SprayCan,
+  Building2,
+  Laptop,
+  FileText,
+  Sparkles,
+  Wrench,
+  Zap,
+  Scissors,
 } from "lucide-react"
-import { CATEGORIES, buildWhatsAppUrl } from "../data/mockProducts"
+import { findCategoria, buildWhatsAppUrl } from "../data/mockProducts"
 
 const CATEGORY_ICONS = {
   1: Stethoscope,
-  2: FlaskConical,
-  3: Syringe,
-  4: SprayCan,
+  2: Building2,
+  3: Laptop,
+  4: FileText,
+  5: Sparkles,
+  6: Wrench,
+  7: Zap,
+  8: Scissors,
 }
 
 const CATEGORY_BADGES = {
@@ -28,9 +36,13 @@ const CATEGORY_BADGES = {
   2: "bg-cyan-400 text-slate-900",
   3: "bg-emerald-400 text-slate-900",
   4: "bg-indigo-400 text-white",
+  5: "bg-sky-400 text-slate-900",
+  6: "bg-rose-400 text-white",
+  7: "bg-orange-400 text-slate-900",
+  8: "bg-violet-400 text-white",
 }
 
-const findCat = (id) => CATEGORIES.find((c) => String(c.id) === String(id))
+const findCat = (id, nombre) => findCategoria(id, nombre)
 
 const formatPrecio = (value) =>
   Number(value || 0).toLocaleString("es-BO", { minimumFractionDigits: 2 })
@@ -48,7 +60,7 @@ function ProductDetailModal({
 }) {
   const images = product.imagenes?.length ? product.imagenes : [null]
   const [index, setIndex] = useState(0)
-  const cat = findCat(product.categoria_id)
+  const cat = findCat(product.categoria_id, product.categoria_nombre)
   const CatIcon = cat ? CATEGORY_ICONS[cat.id] : null
 
   useEffect(() => {
@@ -201,6 +213,26 @@ function ProductDetailModal({
                   {product.descripcion}
                 </p>
               </div>
+
+              {(product.marca || product.procedencia) && (
+                <div className="rounded-2xl border border-slate-700/60 bg-[#1A1C38]/80 p-4 shadow-md">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#EAB308]">
+                    Marca y Procedencia
+                  </h4>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {product.marca && (
+                      <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white ring-1 ring-white/15">
+                        Marca: {product.marca}
+                      </span>
+                    )}
+                    {product.procedencia && (
+                      <span className="rounded-full bg-[#3BB54A]/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#86efac] ring-1 ring-[#3BB54A]/40">
+                        Procedencia: {product.procedencia}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {product.especificaciones?.length > 0 && (
                 <div className="rounded-2xl border border-slate-700/60 bg-[#1A1C38]/80 p-4 shadow-md">

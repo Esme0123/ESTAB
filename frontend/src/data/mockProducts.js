@@ -1,56 +1,134 @@
 export const CATEGORIES = [
   {
     id: 1,
-    nombre: "Equipamiento Médico",
-    descripcion: "Equipos de diagnóstico y atención para clínicas y hospitales",
-    emoji: "🏥",
+    nombre: "Equipamiento y Prendas Médicas",
+    descripcion: "Equipamiento médico, insumos, prendas y ropa hospitalaria",
+    emoji: "🩺",
+    icono: "Stethoscope",
     colorBorde: "border-pulse",
     colorFondo: "bg-pulse/10",
     colorTexto: "text-pulse",
+    gradiente: "from-amber-500 to-orange-700",
     imagen:
       "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 2,
-    nombre: "Mobiliario de Laboratorio y Clínica",
-    descripcion: "Camillas, vitrinas, sillas ergonómicas y mobiliario sanitario",
-    emoji: "🧪",
+    nombre: "Mobiliario de Oficina y Clínica",
+    descripcion: "Mobiliario ergonómico de oficina, clínico y de laboratorio",
+    emoji: "🪑",
+    icono: "Building2",
     colorBorde: "border-navy-soft",
     colorFondo: "bg-navy-soft/10",
     colorTexto: "text-navy",
+    gradiente: "from-cyan-500 to-sky-800",
     imagen:
       "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: 3,
-    nombre: "Insumos Médicos",
-    descripcion: "Descartables, kits de esterilización y bioseguridad",
-    emoji: "💉",
+    nombre: "Equipos de Computación y Audiovisual",
+    descripcion: "Computadoras, laptops, material educativo y equipos audiovisuales",
+    emoji: "💻",
+    icono: "Laptop",
     colorBorde: "border-brand-green",
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
-    imagen:
-      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80",
+    gradiente: "from-emerald-500 to-teal-800",
+    imagen: "",
   },
   {
     id: 4,
-    nombre: "Material Corporativo y Limpieza",
-    descripcion: "Papelería, escritorio y productos de higiene para empresas",
-    emoji: "🧼",
+    nombre: "Material de Escritorio y Papelería",
+    descripcion: "Material de escritorio, suministros de oficina y papelería general",
+    emoji: "📄",
+    icono: "FileText",
     colorBorde: "border-brand-green",
     colorFondo: "bg-brand-green/10",
     colorTexto: "text-brand-green-dark",
+    gradiente: "from-indigo-500 to-violet-800",
+    imagen: "",
+  },
+  {
+    id: 5,
+    nombre: "Material de Limpieza y Corporativo",
+    descripcion: "Insumos de higiene, desinfectantes y productos corporativos",
+    emoji: "✨",
+    icono: "Sparkles",
+    colorBorde: "border-brand-green",
+    colorFondo: "bg-brand-green/10",
+    colorTexto: "text-brand-green-dark",
+    gradiente: "from-sky-500 to-cyan-800",
     imagen:
       "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80",
   },
+  {
+    id: 6,
+    nombre: "Maquinaria Industrial y Ferretería",
+    descripcion: "Maquinaria pesada, industrial y herramientas de ferretería",
+    emoji: "🔧",
+    icono: "Wrench",
+    colorBorde: "border-pulse",
+    colorFondo: "bg-pulse/10",
+    colorTexto: "text-pulse",
+    gradiente: "from-rose-500 to-red-800",
+    imagen: "",
+  },
+  {
+    id: 7,
+    nombre: "Electrodomésticos y Material Eléctrico",
+    descripcion: "Línea blanca, electrodomésticos e instalaciones eléctricas",
+    emoji: "⚡",
+    icono: "Zap",
+    colorBorde: "border-pulse",
+    colorFondo: "bg-pulse/10",
+    colorTexto: "text-pulse",
+    gradiente: "from-orange-500 to-amber-700",
+    imagen: "",
+  },
+  {
+    id: 8,
+    nombre: "Confección y Textiles en General",
+    descripcion: "Confección de textiles, uniformes y ropa en general",
+    emoji: "✂️",
+    icono: "Scissors",
+    colorBorde: "border-navy-soft",
+    colorFondo: "bg-navy-soft/10",
+    colorTexto: "text-navy",
+    gradiente: "from-violet-500 to-fuchsia-800",
+    imagen: "",
+  },
+]
+
+export const UNIDADES = ["UNIDAD", "PAQUETE", "FRASCO", "CAJA"]
+
+export const PROCEDENCIAS_SUGERIDAS = [
+  "NACIONAL",
+  "PERÚ",
+  "BRASIL",
+  "IMPORTADO",
+  "CHINA",
+  "ESTADOS UNIDOS",
 ]
 
 export const WHATSAPP_NUMBER = "59171814954"
 export const EMAIL_CONTACT = "info@estab.com.bo"
 export const ADDRESS_FULL = "Ciudad Satélite C. Fernando Caballero # 1158, El Alto, Bolivia"
 
+export const findCategoria = (id, nombre) =>
+  CATEGORIES.find((c) => String(c.id) === String(id)) ||
+  (nombre ? CATEGORIES.find((c) => c.nombre === nombre) : undefined)
+
 export const buildWhatsAppUrl = (producto) => {
-  const mensaje = `Hola, deseo consultar por el producto: ${producto.nombre}`
+  const extras = [
+    producto.marca ? `Marca: ${producto.marca}` : "",
+    producto.procedencia ? `Procedencia: ${producto.procedencia}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ")
+  const mensaje = `Hola, deseo consultar por el producto: ${producto.nombre}${
+    extras ? ` (${extras})` : ""
+  }`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
 }
 
@@ -68,8 +146,13 @@ export const buildQuoteWhatsAppUrl = (producto) => {
 export const buildMultiQuoteWhatsAppUrl = (productos) => {
   const lineas = productos
     .map((p, i) => {
-      const cat = CATEGORIES.find((c) => String(c.id) === String(p.categoria_id))
-      return `${i + 1}. ${p.nombre} (${cat?.nombre || "Sin categoría"})`
+      const cat = findCategoria(p.categoria_id, p.categoria_nombre)
+      const extras = [p.marca ? `marca ${p.marca}` : "", p.procedencia ? `proc. ${p.procedencia}` : ""]
+        .filter(Boolean)
+        .join(" · ")
+      return `${i + 1}. ${p.nombre} (${cat?.nombre || "Sin categoría"}${
+        extras ? ` · ${extras}` : ""
+      })`
     })
     .join("\n")
   const mensaje = `Hola Estab Group S.R.L., quisiera solicitar una cotización para los siguientes productos seleccionados de su catálogo web:\n${lineas}\nPor favor, quedo atento a su propuesta y disponibilidad.`

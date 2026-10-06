@@ -37,7 +37,7 @@ switch ($method) {
 function productSelectColumns(bool $includePrice): string
 {
     $price = $includePrice ? ', p.precio_referencial' : '';
-    return "p.id, p.nombre, p.descripcion, p.categoria_id, c.nombre AS categoria_nombre, p.estado{$price}";
+    return "p.id, p.nombre, p.descripcion, p.marca, p.procedencia, p.categoria_id, c.nombre AS categoria_nombre, p.estado{$price}";
 }
 
 function hydrateProduct(array $row): array
@@ -108,6 +108,8 @@ function validateProductPayload(array $input): array
     return [
         'nombre'            => $nombre,
         'descripcion'       => trim($input['descripcion'] ?? ''),
+        'marca'             => mb_substr(trim($input['marca'] ?? ''), 0, 100),
+        'procedencia'       => mb_substr(trim($input['procedencia'] ?? ''), 0, 100),
         'precio_referencial' => $precio,
         'categoria_id'      => $categoriaId,
         'estado'            => $estado,
@@ -161,12 +163,14 @@ function handlePost(): void
 
     $db = db();
     $stmt = $db->prepare(
-        'INSERT INTO productos (nombre, descripcion, precio_referencial, categoria_id, estado)
-         VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO productos (nombre, descripcion, marca, procedencia, precio_referencial, categoria_id, estado)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $input['nombre'],
         $input['descripcion'],
+        $input['marca'],
+        $input['procedencia'],
         $input['precio_referencial'],
         $input['categoria_id'],
         $input['estado'],
@@ -204,12 +208,14 @@ function handlePut(): void
 
     $stmt = $db->prepare(
         'UPDATE productos
-            SET nombre = ?, descripcion = ?, precio_referencial = ?, categoria_id = ?, estado = ?
+            SET nombre = ?, descripcion = ?, marca = ?, procedencia = ?, precio_referencial = ?, categoria_id = ?, estado = ?
           WHERE id = ?'
     );
     $stmt->execute([
         $input['nombre'],
         $input['descripcion'],
+        $input['marca'],
+        $input['procedencia'],
         $input['precio_referencial'],
         $input['categoria_id'],
         $input['estado'],
