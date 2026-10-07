@@ -45,10 +45,11 @@ DEALLOCATE PREPARE stmt;
 SET @existe = (SELECT COUNT(*) FROM `information_schema`.`COLUMNS`
                 WHERE `TABLE_SCHEMA` = 'estab_bd'
                   AND `TABLE_NAME`   = 'categorias'
-                  AND `COLUMN_NAME` IN ('descripcion', 'icono'));
-SET @sql = IF(@existe = 0,
+                  AND `COLUMN_NAME` IN ('descripcion', 'icono', 'imagen'));
+SET @sql = IF(@existe < 3,
   'ALTER TABLE `categorias` ADD COLUMN `descripcion` VARCHAR(200) NULL AFTER `nombre`,
-                             ADD COLUMN `icono` VARCHAR(60) NULL AFTER `descripcion`',
+                             ADD COLUMN `icono` VARCHAR(60) NULL AFTER `descripcion`,
+                             ADD COLUMN `imagen` VARCHAR(500) NULL AFTER `icono`',
   'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -58,15 +59,16 @@ DEALLOCATE PREPARE stmt;
 -- 2) Categorías nuevas (ids 5 a 8): se insertan ANTES de reasignar
 --    productos, porque la reenvasación apunta al id 5.
 -- ------------------------------------------------------------
-INSERT INTO `categorias` (`id`, `nombre`, `descripcion`, `icono`) VALUES
-(5, 'Material de Limpieza y Corporativo', 'Insumos de higiene, desinfectantes y productos corporativos', 'Sparkles'),
-(6, 'Maquinaria Industrial y Ferretería', 'Maquinaria pesada, industrial y herramientas de ferretería', 'Wrench'),
-(7, 'Electrodomésticos y Material Eléctrico', 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'Zap'),
-(8, 'Confección y Textiles en General', 'Confección de textiles, uniformes y ropa en general', 'Scissors')
+INSERT INTO `categorias` (`id`, `nombre`, `descripcion`, `icono`, `imagen`) VALUES
+(5, 'Material de Limpieza y Corporativo', 'Insumos de higiene, desinfectantes y productos corporativos', 'Sparkles', 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80'),
+(6, 'Maquinaria Industrial y Ferretería', 'Maquinaria pesada, industrial y herramientas de ferretería', 'Wrench', 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80'),
+(7, 'Electrodomésticos y Material Eléctrico', 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'Zap', 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80'),
+(8, 'Confección y Textiles en General', 'Confección de textiles, uniformes y ropa en general', 'Scissors', 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=800&q=80')
 ON DUPLICATE KEY UPDATE
   `nombre`      = VALUES(`nombre`),
   `descripcion` = VALUES(`descripcion`),
-  `icono`       = VALUES(`icono`);
+  `icono`       = VALUES(`icono`),
+  `imagen`      = VALUES(`imagen`);
 
 -- ------------------------------------------------------------
 -- 3) Reasignar productos de las categorías antiguas a las nuevas
@@ -112,19 +114,20 @@ DELETE FROM `categorias`
 -- ------------------------------------------------------------
 -- 5) Listado oficial de las 8 categorías (ids fijos 1 a 8)
 -- ------------------------------------------------------------
-INSERT INTO `categorias` (`id`, `nombre`, `descripcion`, `icono`) VALUES
-(1, 'Equipamiento y Prendas Médicas', 'Equipamiento médico, insumos, prendas y ropa hospitalaria', 'Stethoscope'),
-(2, 'Mobiliario de Oficina y Clínica', 'Mobiliario ergonómico de oficina, clínico y de laboratorio', 'Building2'),
-(3, 'Equipos de Computación y Audiovisual', 'Computadoras, laptops, material educativo y equipos audiovisuales', 'Laptop'),
-(4, 'Material de Escritorio y Papelería', 'Material de escritorio, suministros de oficina y papelería general', 'FileText'),
-(5, 'Material de Limpieza y Corporativo', 'Insumos de higiene, desinfectantes y productos corporativos', 'Sparkles'),
-(6, 'Maquinaria Industrial y Ferretería', 'Maquinaria pesada, industrial y herramientas de ferretería', 'Wrench'),
-(7, 'Electrodomésticos y Material Eléctrico', 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'Zap'),
-(8, 'Confección y Textiles en General', 'Confección de textiles, uniformes y ropa en general', 'Scissors')
+INSERT INTO `categorias` (`id`, `nombre`, `descripcion`, `icono`, `imagen`) VALUES
+(1, 'Equipamiento y Prendas Médicas', 'Equipamiento médico, insumos, prendas y ropa hospitalaria', 'Stethoscope', 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80'),
+(2, 'Mobiliario de Oficina y Clínica', 'Mobiliario ergonómico de oficina, clínico y de laboratorio', 'Building2', 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80'),
+(3, 'Equipos de Computación y Audiovisual', 'Computadoras, laptops, material educativo y equipos audiovisuales', 'Laptop', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Material de Escritorio y Papelería', 'Material de escritorio, suministros de oficina y papelería general', 'FileText', 'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=800&q=80'),
+(5, 'Material de Limpieza y Corporativo', 'Insumos de higiene, desinfectantes y productos corporativos', 'Sparkles', 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80'),
+(6, 'Maquinaria Industrial y Ferretería', 'Maquinaria pesada, industrial y herramientas de ferretería', 'Wrench', 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80'),
+(7, 'Electrodomésticos y Material Eléctrico', 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'Zap', 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80'),
+(8, 'Confección y Textiles en General', 'Confección de textiles, uniformes y ropa en general', 'Scissors', 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=800&q=80')
 ON DUPLICATE KEY UPDATE
   `nombre`      = VALUES(`nombre`),
   `descripcion` = VALUES(`descripcion`),
-  `icono`       = VALUES(`icono`);
+  `icono`       = VALUES(`icono`),
+  `imagen`      = VALUES(`imagen`);
 
 SET @max_cat = (SELECT COALESCE(MAX(`id`), 8) FROM `categorias`);
 SET @sql = CONCAT('ALTER TABLE `categorias` AUTO_INCREMENT = ', @max_cat + 1);

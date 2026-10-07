@@ -176,17 +176,7 @@ function Login() {
             {loading ? "Verificando..." : "Iniciar sesión"}
           </button>
 
-          <div className="mt-4 rounded-xl bg-white/5 p-3 text-xs leading-relaxed text-white/50">
-            <p className="font-semibold text-white/70">Acceso demo</p>
-            <p>
-              Admin: <span className="font-semibold text-white/80">admin@estabgroup.com</span> ·{" "}
-              <span className="font-semibold text-white/80">password</span>
-            </p>
-            <p>
-              Ventas: <span className="font-semibold text-white/80">ventas@estabgroup.com</span> ·{" "}
-              <span className="font-semibold text-white/80">password</span>
-            </p>
-          </div>
+
         </form>
 
         <a

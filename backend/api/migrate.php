@@ -96,6 +96,11 @@ $columnaNueva(
     'icono',
     'ALTER TABLE categorias ADD COLUMN icono VARCHAR(60) NULL AFTER descripcion'
 );
+$columnaNueva(
+    'categorias',
+    'imagen',
+    'ALTER TABLE categorias ADD COLUMN imagen VARCHAR(500) NULL AFTER icono'
+);
 
 // ---------- Siembra de datos iniciales (solo si están vacías) ----------
 
@@ -110,14 +115,14 @@ $categoriasCount = (int) $db->query('SELECT COUNT(*) FROM categorias')->fetchCol
 
 // ---------- Categorías oficiales (registro oficial de la empresa) ----------
 $CATEGORIAS_OFICIALES = [
-    1 => ['nombre' => 'Equipamiento y Prendas Médicas', 'descripcion' => 'Equipamiento médico, insumos, prendas y ropa hospitalaria', 'icono' => 'Stethoscope'],
-    2 => ['nombre' => 'Mobiliario de Oficina y Clínica', 'descripcion' => 'Mobiliario ergonómico de oficina, clínico y de laboratorio', 'icono' => 'Building2'],
-    3 => ['nombre' => 'Equipos de Computación y Audiovisual', 'descripcion' => 'Computadoras, laptops, material educativo y equipos audiovisuales', 'icono' => 'Laptop'],
-    4 => ['nombre' => 'Material de Escritorio y Papelería', 'descripcion' => 'Material de escritorio, suministros de oficina y papelería general', 'icono' => 'FileText'],
-    5 => ['nombre' => 'Material de Limpieza y Corporativo', 'descripcion' => 'Insumos de higiene, desinfectantes y productos corporativos', 'icono' => 'Sparkles'],
-    6 => ['nombre' => 'Maquinaria Industrial y Ferretería', 'descripcion' => 'Maquinaria pesada, industrial y herramientas de ferretería', 'icono' => 'Wrench'],
-    7 => ['nombre' => 'Electrodomésticos y Material Eléctrico', 'descripcion' => 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'icono' => 'Zap'],
-    8 => ['nombre' => 'Confección y Textiles en General', 'descripcion' => 'Confección de textiles, uniformes y ropa en general', 'icono' => 'Scissors'],
+    1 => ['nombre' => 'Equipamiento y Prendas Médicas', 'descripcion' => 'Equipamiento médico, insumos, prendas y ropa hospitalaria', 'icono' => 'Stethoscope', 'imagen' => 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80'],
+    2 => ['nombre' => 'Mobiliario de Oficina y Clínica', 'descripcion' => 'Mobiliario ergonómico de oficina, clínico y de laboratorio', 'icono' => 'Building2', 'imagen' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80'],
+    3 => ['nombre' => 'Equipos de Computación y Audiovisual', 'descripcion' => 'Computadoras, laptops, material educativo y equipos audiovisuales', 'icono' => 'Laptop', 'imagen' => 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80'],
+    4 => ['nombre' => 'Material de Escritorio y Papelería', 'descripcion' => 'Material de escritorio, suministros de oficina y papelería general', 'icono' => 'FileText', 'imagen' => 'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=800&q=80'],
+    5 => ['nombre' => 'Material de Limpieza y Corporativo', 'descripcion' => 'Insumos de higiene, desinfectantes y productos corporativos', 'icono' => 'Sparkles', 'imagen' => 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80'],
+    6 => ['nombre' => 'Maquinaria Industrial y Ferretería', 'descripcion' => 'Maquinaria pesada, industrial y herramientas de ferretería', 'icono' => 'Wrench', 'imagen' => 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80'],
+    7 => ['nombre' => 'Electrodomésticos y Material Eléctrico', 'descripcion' => 'Línea blanca, electrodomésticos e instalaciones eléctricas', 'icono' => 'Zap', 'imagen' => 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80'],
+    8 => ['nombre' => 'Confección y Textiles en General', 'descripcion' => 'Confección de textiles, uniformes y ropa en general', 'icono' => 'Scissors', 'imagen' => 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=800&q=80'],
 ];
 
 // Categorías históricas reemplazadas por el listado oficial => id destino.
@@ -193,9 +198,9 @@ foreach ($CATEGORIAS_OFICIALES as $id => $cat) {
 
 //    Fase 2: crear las que falten en el id oficial libre.
 foreach ($CATEGORIAS_OFICIALES as $id => $cat) {
-    if ($nombreExiste($cat['nombre']) === null && $idLibre($id)) {
-        $db->prepare('INSERT INTO categorias (id, nombre, descripcion, icono) VALUES (?, ?, ?, ?)')
-            ->execute([$id, $cat['nombre'], $cat['descripcion'], $cat['icono']]);
+        if ($nombreExiste($cat['nombre']) === null && $idLibre($id)) {
+        $db->prepare('INSERT INTO categorias (id, nombre, descripcion, icono, imagen) VALUES (?, ?, ?, ?, ?)')
+            ->execute([$id, $cat['nombre'], $cat['descripcion'], $cat['icono'], $cat['imagen'] ?? null]);
     }
 }
 
@@ -212,14 +217,14 @@ foreach ($CATEGORIAS_OFICIALES as $id => $cat) {
         if ($ocupante && in_array($ocupante['nombre'], $nombresOficiales, true)) {
             continue; // nunca pisar otro nombre oficial
         }
-        $db->prepare('UPDATE categorias SET nombre = ?, descripcion = ?, icono = ? WHERE id = ?')
-            ->execute([$cat['nombre'], $cat['descripcion'], $cat['icono'], $id]);
+        $db->prepare('UPDATE categorias SET nombre = ?, descripcion = ?, icono = ?, imagen = ? WHERE id = ?')
+            ->execute([$cat['nombre'], $cat['descripcion'], $cat['icono'], $cat['imagen'] ?? null, $id]);
         continue;
     }
 
-    $db->prepare('UPDATE categorias SET descripcion = ?, icono = ? WHERE id = ?')
-        ->execute([$cat['descripcion'], $cat['icono'], $existenteId]);
-}
+        $db->prepare('UPDATE categorias SET descripcion = ?, icono = ?, imagen = ? WHERE id = ?')
+            ->execute([$cat['descripcion'], $cat['icono'], $cat['imagen'] ?? null, $id]);
+    }
 
 // D) Limpieza: retira las categorías que ya no son oficiales y sin productos.
 $placeholders = implode(',', array_fill(0, count($nombresOficiales), '?'));
