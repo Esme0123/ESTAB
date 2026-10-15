@@ -5,13 +5,13 @@ import {
   MessageCircle,
   Eye,
   PackageSearch,
-  ImageOff,
   Check,
   Plus,
   Trash2,
   Calculator,
   Pencil,
   Power,
+  TriangleAlert,
 } from "lucide-react"
 import { CATEGORIES, findCategoria, buildWhatsAppUrl, buildMultiQuoteWhatsAppUrl } from "../data/mockProducts"
 import ProductDetailModal from "../components/ProductDetailModal"
@@ -19,6 +19,8 @@ import ProductSearch from "../components/ProductSearch"
 import CotizadorPanel from "../components/CotizadorPanel"
 import ProductFormModal from "../components/ProductFormModal"
 import SuccessModal from "../components/SuccessModal"
+import ProductImage from "../components/ProductImage"
+import PriceEditor from "../components/PriceEditor"
 import { isAuthenticated, getStoredUser, isAdminRole } from "../lib/auth"
 import { api } from "../services/api"
 
@@ -83,6 +85,7 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
   const [editing, setEditing] = useState(null)
   const [successMsg, setSuccessMsg] = useState("")
   const [notice, setNotice] = useState("")
+  const [filterWithoutPrice, setFilterWithoutPrice] = useState(false)
 
   const urlCategory = searchParams.get("categoria") || null
   const [activeCategory, setActiveCategory] = useState(urlCategory)
@@ -104,11 +107,18 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
 
   const catName = activeCategory ? findCat(activeCategory)?.nombre : null
 
+  const productosSinPrecio = useMemo(
+    () => allProducts.filter((p) => !Number(p.precio_referencial || 0)).length,
+    [allProducts]
+  )
+
   const filtered = useMemo(() => {
     return allProducts.filter((p) => {
       if (p.estado === "inactivo" && !esAdmin) return false
       const matchesCategory =
         !activeCategory || String(p.categoria_id) === String(activeCategory)
+      const matchesPrice =
+        !filterWithoutPrice || !Number(p.precio_referencial || 0)
       const q = searchTerm.toLowerCase().trim()
       const cat = findCat(p.categoria_id, p.categoria_nombre)
       const matchesSearch =
@@ -118,9 +128,9 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
         (p.marca || "").toLowerCase().includes(q) ||
         (p.procedencia || "").toLowerCase().includes(q) ||
         (cat && cat.nombre.toLowerCase().includes(q))
-      return matchesCategory && matchesSearch
+      return matchesCategory && matchesPrice && matchesSearch
     })
-  }, [allProducts, activeCategory, searchTerm, esAdmin])
+  }, [allProducts, activeCategory, searchTerm, esAdmin, filterWithoutPrice])
 
   const toggleSelect = (product) => {
     setSelectedProducts((prev) =>
@@ -201,6 +211,18 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
       setSuccessMsg("El producto se eliminó correctamente.")
     } catch (err) {
       showError(err.message || "Error al eliminar el producto.")
+    }
+  }
+
+  const updatePrecio = async (p, nuevoPrecio) => {
+    try {
+      const updated = await api.updatePrecio(p.id, p, nuevoPrecio)
+      setProducts((prev) =>
+        prev.map((item) => (item.id === p.id ? updated : item))
+      )
+    } catch (err) {
+      showError(err.message || "Error al actualizar el precio.")
+      throw err
     }
   }
 
@@ -296,14 +318,33 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
           ))}
 
           {esAdmin && (
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={openCreate}
-              className="ml-auto flex cursor-pointer items-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
-            >
-              <Plus className="h-4 w-4" />
-              Añadir Producto
-            </motion.button>
+            <>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setFilterWithoutPrice((prev) => !prev)}
+                title="Mostrar solo productos sin precio asignado"
+                className={`flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
+                  filterWithoutPrice
+                    ? "border-amber-500 bg-amber-400 text-slate-900 shadow-lg shadow-amber-400/40"
+                    : "border-amber-300/70 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                }`}
+              >
+                <TriangleAlert className="h-4 w-4" />
+                Productos sin precio (0 Bs.)
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold">
+                  {productosSinPrecio}
+                </span>
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={openCreate}
+                className="ml-auto flex cursor-pointer items-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-green/25 transition hover:bg-brand-green-dark"
+              >
+                <Plus className="h-4 w-4" />
+                Añadir Producto
+              </motion.button>
+            </>
           )}
         </div>
 
@@ -345,18 +386,13 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
                       className="relative block h-44 w-full cursor-pointer overflow-hidden bg-slate-100 text-left"
                       aria-label={`Ver detalle de ${product.nombre}`}
                     >
-                      {firstImage ? (
-                        <img
-                          src={firstImage}
-                          alt={product.nombre}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center text-slate-300">
-                          <ImageOff className="h-10 w-10" />
-                        </span>
-                      )}
+                      <ProductImage
+                        src={firstImage}
+                        alt={product.nombre}
+                        categoryId={product.categoria_id}
+                        categoryName={cat?.nombre}
+                        imgClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
                       <span
                         className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-bold shadow-md ${catStyle.badge}`}
                       >
@@ -431,6 +467,12 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
                           Ver detalle
                         </motion.button>
                       </div>
+
+                      {esAdmin && (
+                        <div className="mt-3 border-t border-slate-100 pt-3">
+                          <PriceEditor product={product} onSave={updatePrecio} />
+                        </div>
+                      )}
 
                       {esAdmin && (
                         <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3">

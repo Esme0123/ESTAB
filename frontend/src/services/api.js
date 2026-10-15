@@ -114,6 +114,15 @@ export const api = {
     return normalizeProducto(data)
   },
 
+  // Edición rápida de precio: reutiliza el PUT completo con el nuevo valor.
+  updatePrecio: async (id, producto, precio) => {
+    const data = await request(`/productos.php?id=${id}`, {
+      method: "PUT",
+      body: toProductoPayload({ ...producto, precio_referencial: precio }),
+    })
+    return normalizeProducto(data)
+  },
+
   deleteProducto: (id) =>
     request(`/productos.php?id=${id}`, { method: "DELETE" }),
 }
