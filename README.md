@@ -138,47 +138,49 @@ npm run build             # Genera /dist para desplegar en el hosting
 
 ## 🌱 Seeder Masivo — Productos Caranavi
 
-`backend/api/seeder_caranavi.php` carga de forma masiva los productos extraídos
-de los Excel de Caranavi, mapeándolos dinámicamente a las 8 categorías oficiales.
+`backend/api/seeder_caranavi.php` carga de forma masiva el **listado literal de
+productos** extraído de los libros de Excel de la empresa. Cada ítem define su
+`categoria_id`, nombre, descripción, precio, marca y procedencia.
 
 **Características:**
 
-- Inserta de forma **idempotente** (consulta por `nombre` antes de insertar; los
-  duplicados se omiten y se reportan).
-- Asigna `precio = 0.00 Bs.` por defecto y la imagen
-  `/assets/fallback-product.webp`.
-- Clasifica cada producto por palabras clave (marca `GENÉRICO`/`ESTAB`,
-  procedencia `NACIONAL`/`IMPORTADO`).
-- Devuelve una respuesta JSON con el conteo de **insertados**, **omitidos** y el
-  desglose por categoría.
+- Inserta de forma **idempotente**: compara `LOWER(TRIM(nombre))` antes de
+  insertar; los duplicados se **omiten** y se contabilizan.
+- Persiste el precio en la columna `productos.precio_referencial` (por defecto
+  `0.00 Bs.`, listo para la edición in-line del Admin).
+- Registra la imagen `/assets/fallback-product.webp` en la tabla
+  `producto_imagenes` (el esquema real no tiene columna `imagen` en `productos`).
+- Al finalizar renderiza una **pantalla HTML** con el total procesado, los
+  insertados, los omitidos y el desglose por categoría.
 
-**Uso:**
+**Uso (navegador):**
 
-| Método | Invocación | Resultado |
-|--------|-----------|-----------|
-| Navegador | `GET /api/seeder_caranavi.php` | Panel interactivo con botón "Ejecutar Seeder" |
-| Endpoint | `GET /api/seeder_caranavi.php?run=1` | Ejecuta y devuelve JSON |
-| Endpoint | `POST /api/seeder_caranavi.php` | Ejecuta y devuelve JSON |
+| Invocación | Resultado |
+|-----------|-----------|
+| `GET /api/seeder_caranavi.php` | Ejecuta la siembra y devuelve el panel HTML resumen |
 
 Ejemplo con `curl`:
 
 ```bash
-curl -X POST https://estab.com.bo/api/seeder_caranavi.php
+curl https://estab.com.bo/api/seeder_caranavi.php
 ```
 
-Respuesta:
+### 🖥️ Ejecución en cPanel (producción)
 
-```json
-{
-  "ok": true,
-  "total_procesados": 52,
-  "insertados": 52,
-  "omitidos": 0,
-  "categorias": [
-    { "id": 1, "nombre": "Equipamiento y Prendas Médicas", "insertados": 10 }
-  ]
-}
-```
+1. Subir el proyecto a `public_html/` (el `DocumentRoot` debe apuntar a la raíz,
+   de modo que `https://estab.com.bo/api/...` resuelva a `backend/api/...`).
+2. Verificar las credenciales de MySQL en `backend/config/database.php` (o
+   definir las variables de entorno `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
+   `DB_PASSWORD`).
+3. Abrir en el navegador: `https://estab.com.bo/api/migrate.php` para crear
+   tablas, categorías y usuarios semilla.
+4. Abrir en el navegador: `https://estab.com.bo/api/seeder_caranavi.php`.
+   El script inserta el catálogo y muestra el resumen. Puede ejecutarse varias
+   veces sin duplicar productos.
+5. Regresar al catálogo (`https://estab.com.bo/`) e iniciar sesión como Admin
+   para completar los precios con la edición rápida.
+
+> Alternativa por SSH: `php /ruta/a/backend/api/seeder_caranavi.php`.
 
 ---
 

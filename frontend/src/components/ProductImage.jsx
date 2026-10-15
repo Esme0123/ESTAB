@@ -1,5 +1,15 @@
 import { useState } from "react"
-import { ImageOff } from "lucide-react"
+import {
+  Stethoscope,
+  Building2,
+  Laptop,
+  FileText,
+  Sparkles,
+  Wrench,
+  Zap,
+  Scissors,
+  ImageOff,
+} from "lucide-react"
 
 const CATEGORY_INITIALS = {
   1: "MED",
@@ -10,6 +20,17 @@ const CATEGORY_INITIALS = {
   6: "IND",
   7: "ELE",
   8: "TEX",
+}
+
+const CATEGORY_ICONS = {
+  1: Stethoscope,
+  2: Building2,
+  3: Laptop,
+  4: FileText,
+  5: Sparkles,
+  6: Wrench,
+  7: Zap,
+  8: Scissors,
 }
 
 function getInitials(categoryId, name, categoryName) {
@@ -43,13 +64,14 @@ function ProductImage({
   const showFallback = !src || failed
 
   if (showFallback) {
+    const CategoryIcon = CATEGORY_ICONS[Number(categoryId)] || ImageOff
     return (
       <span
         role="img"
         aria-label={alt}
         className={`flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1A1C38] via-[#1A1C38] to-[#3BB54A] text-white ${className}`}
       >
-        <ImageOff className="h-9 w-9 opacity-90" />
+        <CategoryIcon className="h-9 w-9 opacity-90" />
         <span className="mt-1.5 text-[11px] font-extrabold tracking-[0.2em]">
           {getInitials(categoryId, alt, categoryName)}
         </span>
