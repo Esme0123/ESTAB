@@ -26,6 +26,9 @@ const LOGO_URL = "/logo_nombre_2_transparent.png"
 const LOGO_ISOTIPO_URL = "/logo-estab.jpeg"
 const DIAS_VALIDEZ = 15
 
+const PROCEDENCIAS = ["NACIONAL", "IMPORTADO"]
+const MARCAS_SUGERIDAS = ["GENÉRICO", "ESTAB"]
+
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
 
 const formatMoneda = (n) =>
@@ -126,8 +129,8 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       especificaciones: [...(p.especificaciones || [])],
       cantidad: 1,
       unidad: "UNIDAD",
-      marca: p.marca || "",
-      procedencia: p.procedencia || "",
+      marca: p.marca || "ESTAB",
+      procedencia: p.procedencia || "NACIONAL",
       precioUnitario: round2(p.precio_referencial),
     }))
   )
@@ -238,20 +241,22 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       doc.text(`N° de Cotización: ${correlativo}`, pageW - margin, y, { align: "right" })
 
       y += 20
+      doc.setFillColor(248, 250, 252)
+      doc.setDrawColor(226, 232, 240)
+      doc.setLineWidth(0.6)
+      doc.roundedRect(margin, y - 12, contentW, 64, 6, 6, "FD")
       doc.setFont("helvetica", "bold")
       doc.setFontSize(10)
-      doc.text("DATOS DEL CLIENTE", margin, y)
-      doc.setLineWidth(0.6)
-      doc.setDrawColor(26, 28, 56)
-      doc.line(margin, y + 4, pageW - margin, y + 4)
+      doc.setTextColor(26, 28, 56)
+      doc.text("DATOS DEL CLIENTE", margin + 12, y + 2)
 
       doc.setFontSize(9)
-      const colX = margin + 200
+      const colX = margin + contentW / 2
       const campos = [
-        ["Cliente:", cliente || "—", margin, y + 20],
-        ["NIT / CI:", nitCi || "—", colX, y + 20],
-        ["Atención a:", atencion || "—", margin, y + 34],
-        ["Fecha de validez:", formatFecha(fechaValidez), colX, y + 34],
+        ["Cliente:", cliente || "—", margin + 12, y + 22],
+        ["NIT / CI:", nitCi || "—", colX, y + 22],
+        ["Atención a:", atencion || "—", margin + 12, y + 40],
+        ["Fecha de validez:", formatFecha(fechaValidez), colX, y + 40],
       ]
       campos.forEach(([label, valor, x, cy]) => {
         doc.setFont("helvetica", "bold")
@@ -259,11 +264,11 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         doc.text(label, x, cy)
         doc.setFont("helvetica", "normal")
         doc.setTextColor(26, 28, 56)
-        doc.text(doc.splitTextToSize(valor, 150), x + 70, cy)
+        doc.text(doc.splitTextToSize(valor, 170), x + 82, cy)
       })
 
       autoTable(doc, {
-        startY: y + 50,
+        startY: y + 66,
         margin: { left: margin, right: margin },
         head: [
           [
@@ -290,15 +295,15 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         theme: "grid",
         showHead: "everyPage",
         headStyles: {
-          fillColor: [22, 163, 74],
+          fillColor: [26, 28, 56],
           textColor: [255, 255, 255],
           fontStyle: "bold",
           fontSize: 8,
           halign: "center",
           cellPadding: 5,
         },
-        alternateRowStyles: { fillColor: [240, 253, 244] },
-        styles: { font: "helvetica", fontSize: 8, cellPadding: 5, lineColor: [209, 250, 229] },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        styles: { font: "helvetica", fontSize: 8, cellPadding: 5, lineColor: [226, 232, 240] },
         columnStyles: {
           0: { halign: "center", cellWidth: 26 },
           1: { halign: "center", cellWidth: 34 },
@@ -451,9 +456,9 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
     setExportando("excel")
     try {
       const NAVY = { rgb: "1A1C38" }
-      const GOLD = { rgb: "EAB308" }
+      const BRAND = { rgb: "3BB54A" }
       const WHITE = { rgb: "FFFFFF" }
-      const BORDER = { rgb: "CBD5E1" }
+      const BORDER = { rgb: "E2E8F0" }
 
       const filas = [
         [EMPRESA_NOMBRE, "", "", "", "", "", "", ""],
@@ -517,7 +522,7 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
         merge(r, 0, 7)
         for (let c = 0; c <= 7; c++) {
           styleCell(r, c, {
-            font: { name: "Calibri", sz: r === 0 ? 18 : r === 1 ? 13 : 10, bold: r === 0 || r === 1, color: r === 1 ? GOLD : WHITE },
+            font: { name: "Calibri", sz: r === 0 ? 18 : r === 1 ? 13 : 10, bold: r === 0 || r === 1, color: WHITE },
             fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
             alignment: { horizontal: r === 1 || r === 2 ? "left" : "center", vertical: "center" },
             border: { bottom: { style: "hair", color: { rgb: "3D4056" } } },
@@ -565,9 +570,9 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       for (let c = 0; c <= 7; c++) {
         styleCell(headerRow, c, {
           font: { name: "Calibri", sz: 10, bold: true, color: WHITE },
-          fill: { patternType: "solid", fgColor: { rgb: "16A34A" } },
+          fill: { patternType: "solid", fgColor: { rgb: "1A1C38" } },
           alignment: { horizontal: "center", vertical: "center", wrapText: true },
-          border: { top: { style: "thin", color: { rgb: "15803D" } }, bottom: { style: "thin", color: { rgb: "15803D" } } },
+          border: { top: { style: "thin", color: BORDER }, bottom: { style: "thin", color: BORDER } },
         })
       }
       for (let r = firstData; r <= lastData; r++) {
@@ -598,7 +603,7 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       for (let c = 0; c <= 7; c++) {
         styleCell(totalRow, c, {
           font: { name: "Calibri", sz: 13, bold: true, color: WHITE },
-          fill: { patternType: "solid", fgColor: { rgb: "16A34A" } },
+          fill: { patternType: "solid", fgColor: BRAND },
           alignment: { vertical: "center", horizontal: c === 7 ? "right" : "left" },
         })
       }
@@ -606,8 +611,8 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       merge(literalRow, 0, 7)
       for (let c = 0; c <= 7; c++) {
         styleCell(literalRow, c, {
-          font: { name: "Calibri", sz: 10, bold: true, color: { rgb: "166534" } },
-          fill: { patternType: "solid", fgColor: { rgb: "DCFCE7" } },
+          font: { name: "Calibri", sz: 10, bold: true, color: NAVY },
+          fill: { patternType: "solid", fgColor: { rgb: "F8FAFC" } },
           alignment: { horizontal: "left", vertical: "center", wrapText: true },
         })
       }
@@ -641,15 +646,27 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
       // ------------------------------------------------------------
       // ANCHO DE COLUMNAS Y ALTURA DE FILAS
       // ------------------------------------------------------------
+      const anchoColumna = (idx, min, max) => {
+        let ancho = min
+        filas.forEach((fila) => {
+          const valor = fila[idx]
+          if (valor === null || valor === undefined) return
+          const largo = String(valor)
+            .split("\n")
+            .reduce((m, linea) => Math.max(m, linea.length), 0)
+          ancho = Math.max(ancho, largo + 2)
+        })
+        return Math.min(ancho, max)
+      }
       ws["!cols"] = [
-        { wch: 6 },
-        { wch: 10 },
-        { wch: 12 },
-        { wch: 46 },
-        { wch: 16 },
-        { wch: 16 },
-        { wch: 18 },
-        { wch: 18 },
+        { wch: anchoColumna(0, 6, 10) },
+        { wch: anchoColumna(1, 10, 14) },
+        { wch: anchoColumna(2, 12, 16) },
+        { wch: anchoColumna(3, 30, 60) },
+        { wch: anchoColumna(4, 12, 18) },
+        { wch: anchoColumna(5, 12, 18) },
+        { wch: anchoColumna(6, 14, 22) },
+        { wch: anchoColumna(7, 14, 22) },
       ]
       ws["!rows"] = [
         { hpt: 30 },
@@ -971,24 +988,35 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
                         <td className="px-4 py-3">
                           <input
                             type="text"
+                            list="cotizador-marcas"
                             maxLength={100}
                             value={it.marca}
                             onChange={(e) => updateItem(it.key, { marca: e.target.value })}
-                            placeholder="Ej: SAPOLIO"
+                            placeholder="Ej: GENÉRICO"
                             className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
                             aria-label={`Marca de ${it.nombre}`}
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <input
-                            type="text"
-                            maxLength={100}
-                            value={it.procedencia}
+                          <select
+                            value={
+                              PROCEDENCIAS.includes(it.procedencia)
+                                ? it.procedencia
+                                : it.procedencia || ""
+                            }
                             onChange={(e) => updateItem(it.key, { procedencia: e.target.value })}
-                            placeholder="Ej: NACIONAL"
-                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
+                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-semibold text-navy outline-none transition focus:border-brand-green focus:bg-white focus:ring-2 focus:ring-brand-green/20"
                             aria-label={`Procedencia de ${it.nombre}`}
-                          />
+                          >
+                            {it.procedencia && !PROCEDENCIAS.includes(it.procedencia) && (
+                              <option value={it.procedencia}>{it.procedencia}</option>
+                            )}
+                            {PROCEDENCIAS.map((proc) => (
+                              <option key={proc} value={proc}>
+                                {proc}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-4 py-3">
                           <input
@@ -1025,6 +1053,11 @@ function CotizadorPanel({ items: productosIniciales = [], onClose, modo = "inter
                     ))}
                   </tbody>
                 </table>
+                <datalist id="cotizador-marcas">
+                  {MARCAS_SUGERIDAS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
               </div>
             )}
 
