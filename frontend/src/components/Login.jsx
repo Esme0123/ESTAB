@@ -17,6 +17,7 @@ import {
   getRememberedCredentials,
   saveRememberedCredentials,
   clearRememberedCredentials,
+  consumeSessionExpired,
 } from "../lib/auth"
 import { api } from "../services/api"
 import { WHATSAPP_NUMBER } from "../data/mockProducts"
@@ -28,6 +29,7 @@ function Login() {
   const [password, setPassword] = useState(remembered?.password || "")
   const [remember, setRemember] = useState(!!remembered)
   const [error, setError] = useState("")
+  const [sessionExpired, setSessionExpired] = useState(() => consumeSessionExpired())
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -38,6 +40,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+    setSessionExpired(false)
     if (!email.trim() || !password.trim()) {
       setError("Ingresa tu correo y contraseña.")
       return
@@ -160,6 +163,13 @@ function Login() {
             </span>
             <span className="ml-2.5 text-sm text-slate-300">Recordarme</span>
           </label>
+
+          {sessionExpired && (
+            <p className="mt-4 rounded-lg bg-amber-500/15 px-4 py-2 text-sm font-medium text-amber-300">
+              Tu sesión expiró o no tenías permisos para realizar esa acción.
+              Vuelve a iniciar sesión.
+            </p>
+          )}
 
           {error && (
             <p className="mt-4 rounded-lg bg-red-500/15 px-4 py-2 text-sm font-medium text-red-300">

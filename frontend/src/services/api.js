@@ -1,3 +1,5 @@
+import { getAuthToken, logout, markSessionExpired } from "../lib/auth"
+
 const isLocalHost =
   typeof window !== "undefined" &&
   (window.location.hostname === "localhost" ||
@@ -14,11 +16,34 @@ export const API_BASE_URL = canUseEnvUrl ? envUrl : "/api"
 
 export const BASE_URL = API_BASE_URL
 
-const TOKEN_KEY = "estab_admin_token"
+export class ApiError extends Error {
+  constructor(message, status = 0) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+  }
+}
 
-const getToken = () => localStorage.getItem(TOKEN_KEY)
+export const isUnauthorizedError = (err) => err?.status === 401
 
-async function request(path, { method = "GET", body, isForm } = {}) {
+const getToken = () => getAuthToken()
+
+/**
+ * Cierra la sesión y manda al usuario al login cuando el backend responde 401
+ * (token ausente, inválido o expirado).
+ */
+const handleUnauthorized = () => {
+  logout()
+  markSessionExpired()
+
+  if (typeof window === "undefined") return
+  if (window.location.pathname === "/login" || window.location.pathname === "/admin/login") {
+    return
+  }
+  window.location.assign("/login")
+}
+
+async function request(path, { method = "GET", body, isForm, skipAuthRedirect = false } = {}) {
   const headers = {}
   const token = getToken()
   if (token) headers["Authorization"] = `Bearer ${token}`
@@ -29,11 +54,14 @@ async function request(path, { method = "GET", body, isForm } = {}) {
     res = await fetch(`${BASE_URL}${path}`, {
       method,
       headers,
+      // Envía cookies de sesión (PHPSESSID) junto al token Bearer.
+      credentials: "include",
       body: isForm ? body : body ? JSON.stringify(body) : undefined,
     })
   } catch {
-    throw new Error(
-      "No se pudo conectar con el servidor. Verifica que el backend esté activo."
+    throw new ApiError(
+      "No se pudo conectar con el servidor. Verifica que el backend esté activo.",
+      0
     )
   }
 
@@ -44,8 +72,12 @@ async function request(path, { method = "GET", body, isForm } = {}) {
     data = null
   }
 
+  if (res.status === 401 && !skipAuthRedirect) {
+    handleUnauthorized()
+  }
+
   if (!res.ok) {
-    throw new Error(data?.error || `Error del servidor (${res.status})`)
+    throw new ApiError(data?.error || `Error del servidor (${res.status})`, res.status)
   }
 
   return data
@@ -73,19 +105,24 @@ export const normalizeProducto = (p) => ({
 
 const toProductoPayload = (producto) => ({
   nombre: producto.nombre,
-  descripcion: producto.descripcion,
+  descripcion: producto.descripcion || "",
   marca: producto.marca || "",
   procedencia: producto.procedencia || "",
-  precio_referencial: producto.precio_referencial,
-  categoria_id: producto.categoria_id,
+  precio_referencial: Number(producto.precio_referencial) || 0,
+  categoria_id: Number(producto.categoria_id) || 0,
   estado: producto.estado === "inactivo" ? 0 : 1,
-  imagenes: producto.imagenes,
-  especificaciones: producto.especificaciones,
+  imagenes: producto.imagenes || [],
+  especificaciones: producto.especificaciones || [],
 })
 
 export const api = {
   login: (email, password) =>
-    request("/login.php", { method: "POST", body: { email, password } }),
+    request("/login.php", {
+      method: "POST",
+      body: { email, password },
+      // Un 401 en el login son credenciales inválidas, no una sesión expirada.
+      skipAuthRedirect: true,
+    }),
 
   uploadImage: (file) => {
     const fd = new FormData()

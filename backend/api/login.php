@@ -3,6 +3,7 @@
  * POST /backend/api/login.php
  * Autenticación por email y password.
  * Retorna token, nombre, email y rol.
+ * Además abre una sesión PHP (PHPSESSID) como segunda vía de autenticación.
  */
 
 require __DIR__ . '/../config/database.php';
@@ -31,6 +32,9 @@ $user = $stmt->fetch();
 if (!$user || !password_verify($password, $user['password'])) {
     jsonResponse(['error' => 'Credenciales incorrectas. Verifica e inténtalo de nuevo.'], 401);
 }
+
+// Sesión PHP: permite seguir autenticado aunque el token caduque.
+loginPhpSession($user);
 
 jsonResponse([
     'token'  => generateToken((int) $user['id']),

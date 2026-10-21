@@ -2,7 +2,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { Plus, X, Upload, Loader2, Check, ImageOff, Pencil } from "lucide-react"
 import { CATEGORIES, PROCEDENCIAS_SUGERIDAS } from "../data/mockProducts"
-import { api } from "../services/api"
+import { api, isUnauthorizedError } from "../services/api"
 
 const EMPTY_FORM = {
   id: null,
@@ -12,6 +12,7 @@ const EMPTY_FORM = {
   procedencia: "",
   precio_referencial: "",
   categoria_id: CATEGORIES[0].id,
+  estado: "activo",
   imagenes: [],
   especificaciones: [],
 }
@@ -30,6 +31,7 @@ function ProductFormModal({ initial, onClose, onSave }) {
           procedencia: initial.procedencia || "",
           precio_referencial: String(initial.precio_referencial ?? ""),
           categoria_id: initial.categoria_id,
+          estado: initial.estado || "activo",
           imagenes: [...(initial.imagenes || [])],
           especificaciones: [...(initial.especificaciones || [])],
         }
@@ -75,7 +77,11 @@ function ProductFormModal({ initial, onClose, onSave }) {
       const data = await api.uploadImage(file)
       setForm((f) => ({ ...f, imagenes: [...f.imagenes, data.url] }))
     } catch (err) {
-      setError(err.message || "Error al subir la imagen.")
+      setError(
+        isUnauthorizedError(err)
+          ? "Tu sesión expiró. Serás redirigido al inicio de sesión."
+          : err.message || "Error al subir la imagen."
+      )
     } finally {
       setUploading(false)
       e.target.value = ""
@@ -98,13 +104,18 @@ function ProductFormModal({ initial, onClose, onSave }) {
         procedencia: form.procedencia.trim(),
         precio_referencial: Number(form.precio_referencial) || 0,
         categoria_id: Number(form.categoria_id),
+        estado: form.estado === "inactivo" ? 0 : 1,
         imagenes: form.imagenes.filter(Boolean),
         especificaciones: form.especificaciones.filter(Boolean),
       }
       await onSave(payload)
       onClose()
     } catch (err) {
-      setError(err.message || "Error al guardar el producto.")
+      setError(
+        isUnauthorizedError(err)
+          ? "Tu sesión expiró. Serás redirigido al inicio de sesión."
+          : err.message || "Error al guardar el producto."
+      )
     } finally {
       setSaving(false)
     }

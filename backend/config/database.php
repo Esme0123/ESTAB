@@ -6,18 +6,6 @@
 
 declare(strict_types=1);
 
-// ---------- CORS ----------
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-const DB_HOST = 'localhost';
-const DB_PORT = 3306;
-const DB_NAME = 'estab_bd';
-const DB_USER = 'esme';
-const DB_PASS = 'chochocomani123.';
-
 /**
  * Orígenes permitidos por CORS.
  * - Para desarrollo local (Vite) se autoriza http://localhost:5173
@@ -30,6 +18,29 @@ const ALLOWED_ORIGINS = [
     'https://estab.com.bo', // <- GoDaddy (producción)
     '*',                          // wildcard (permite cualquier origen durante la migración)
 ];
+
+// ---------- CORS ----------
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// Con credenciales (cookies de sesión) el navegador exige un origen concreto:
+// un comodín '*' haría fallar la validación CORS del lado del cliente.
+if ($requestOrigin !== '' && in_array($requestOrigin, ALLOWED_ORIGINS, true)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Max-Age: 86400');
+header('Content-Type: application/json; charset=utf-8');
+
+const DB_HOST = 'localhost';
+const DB_PORT = 3306;
+const DB_NAME = 'estab_bd';
+const DB_USER = 'esme';
+const DB_PASS = 'chochocomani123.';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -77,6 +88,21 @@ function jsonBody(): array
     $raw = file_get_contents('php://input');
     $data = json_decode($raw ?: '[]', true);
     return is_array($data) ? $data : [];
+}
+
+/**
+ * Convierte cualquier valor recibido por JSON en texto limpio y acotado.
+ */
+function textValue($value, int $maxLength = 0): string
+{
+    if (!is_scalar($value)) {
+        return '';
+    }
+    $text = trim((string) $value);
+    if ($maxLength > 0) {
+        $text = mb_substr($text, 0, $maxLength);
+    }
+    return $text;
 }
 
 // ---------- Tokens ----------
@@ -131,7 +157,121 @@ function authorizationHeader(): ?string
     return $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 }
 
-function authUser(): ?array
+/**
+ * Indica si el origen de la petición está permitido.
+ * Las peticiones del mismo origen no envía cabecera Origin y se consideran de confianza.
+ */
+function originIsAllowed(): bool
+{
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if ($origin === '') {
+        return true;
+    }
+    if (in_array($origin, ALLOWED_ORIGINS, true)) {
+        return true;
+    }
+
+    // Petición del mismo origen que sirve la API.
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') {
+        return false;
+    }
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+
+    return $origin === $scheme . '://' . $host;
+}
+
+/**
+ * Inicia la sesión PHP (PHPSESSID) para permitir autenticación por cookie.
+ * - $force = true  -> siempre inicia sesión (login).
+ * - $force = false -> sólo si el cliente ya envío la cookie de sesión.
+ */
+function startPhpSession(bool $force = false): bool
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return true;
+    }
+    if (headers_sent()) {
+        return false;
+    }
+
+    if (!$force) {
+        $name = session_name();
+        if (empty($_COOKIE[$name]) && empty($_GET[$name]) && empty($_POST[$name])) {
+            return false;
+        }
+    }
+
+    return session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'use_strict_mode' => 1,
+        'use_only_cookies' => 1,
+    ]);
+}
+
+/**
+ * Crea la sesión PHP con los datos del usuario autenticado.
+ */
+function loginPhpSession(array $user): void
+{
+    if (!startPhpSession(true)) {
+        return;
+    }
+    $_SESSION['usuario'] = [
+        'id'     => (int) $user['id'],
+        'nombre' => $user['nombre'] ?? '',
+        'email'  => $user['email'] ?? '',
+        'rol'    => $user['rol'] ?? '',
+    ];
+    $_SESSION['user_id'] = (int) $user['id'];
+}
+
+function destroyPhpSession(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                (bool) $params['secure'],
+                (bool) $params['httponly']
+            );
+        }
+        session_destroy();
+    }
+}
+
+/**
+ * Busca el usuario en la base de datos a partir de su id.
+ */
+function fetchUserById(int $userId): ?array
+{
+    if ($userId <= 0) {
+        return null;
+    }
+
+    $stmt = db()->prepare(
+        'SELECT u.id, u.nombre, u.email, r.nombre AS rol
+           FROM usuarios u
+           JOIN roles r ON r.id = u.rol_id
+          WHERE u.id = ?'
+    );
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+
+    return $user ?: null;
+}
+
+/**
+ * Autenticación por cabecera Authorization: Bearer <token>.
+ */
+function bearerUser(): ?array
 {
     $auth = authorizationHeader();
     if (!$auth || !preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
@@ -143,23 +283,54 @@ function authUser(): ?array
         return null;
     }
 
-    $stmt = db()->prepare(
-        'SELECT u.id, u.nombre, u.email, r.nombre AS rol
-           FROM usuarios u
-           JOIN roles r ON r.id = u.rol_id
-          WHERE u.id = ?'
-    );
-    $stmt->execute([$tokenData['user_id']]);
-    $user = $stmt->fetch();
+    return fetchUserById((int) $tokenData['user_id']);
+}
 
-    return $user ?: null;
+/**
+ * Autenticación por sesión PHP (PHPSESSID).
+ */
+function sessionUser(): ?array
+{
+    // Una cookie de sesión sólo se acepta desde orígenes permitidos (anti-CSRF).
+    if (!originIsAllowed()) {
+        return null;
+    }
+    if (!startPhpSession(false)) {
+        return null;
+    }
+
+    $userId = 0;
+    if (isset($_SESSION['usuario']['id'])) {
+        $userId = (int) $_SESSION['usuario']['id'];
+    } elseif (isset($_SESSION['user_id'])) {
+        $userId = (int) $_SESSION['user_id'];
+    }
+
+    if ($userId <= 0) {
+        return null;
+    }
+
+    return fetchUserById($userId);
+}
+
+/**
+ * Usuario autenticado: se acepta sesión PHP o token Bearer.
+ * Devuelve null cuando la petición es pública.
+ */
+function authUser(): ?array
+{
+    $user = bearerUser();
+    if ($user) {
+        return $user;
+    }
+    return sessionUser();
 }
 
 function requireAdmin(): array
 {
     $user = authUser();
     if (!$user) {
-        jsonResponse(['error' => 'Token inválido o expirado'], 401);
+        jsonResponse(['error' => 'Sesión no válida o expirada. Inicia sesión nuevamente.'], 401);
     }
     if ($user['rol'] !== 'Admin') {
         jsonResponse(['error' => 'No autorizado para esta acción'], 403);
@@ -171,7 +342,7 @@ function requireStaff(): array
 {
     $user = authUser();
     if (!$user) {
-        jsonResponse(['error' => 'Token inválido o expirado'], 401);
+        jsonResponse(['error' => 'Sesión no válida o expirada. Inicia sesión nuevamente.'], 401);
     }
     return $user;
 }

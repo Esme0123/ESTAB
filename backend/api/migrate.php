@@ -102,6 +102,45 @@ $columnaNueva(
     'ALTER TABLE categorias ADD COLUMN imagen VARCHAR(500) NULL AFTER icono'
 );
 
+// Sincroniza la tabla producto_imagenes con el esquema esperado por la API.
+$columnaNueva(
+    'producto_imagenes',
+    'producto_id',
+    'ALTER TABLE producto_imagenes ADD COLUMN producto_id INT NOT NULL DEFAULT 0'
+);
+$columnaNueva(
+    'producto_imagenes',
+    'url_imagen',
+    "ALTER TABLE producto_imagenes ADD COLUMN url_imagen VARCHAR(500) NOT NULL DEFAULT ''"
+);
+$columnaNueva(
+    'producto_especificaciones',
+    'producto_id',
+    'ALTER TABLE producto_especificaciones ADD COLUMN producto_id INT NOT NULL DEFAULT 0'
+);
+$columnaNueva(
+    'producto_especificaciones',
+    'especificacion',
+    "ALTER TABLE producto_especificaciones ADD COLUMN especificacion VARCHAR(500) NOT NULL DEFAULT ''"
+);
+
+// Índice para las consultas por producto_id (lectura y reemplazo de imágenes).
+$indiceExiste = static function (string $tabla, string $indice) use ($db): bool {
+    $stmt = $db->prepare(
+        'SELECT COUNT(*) FROM information_schema.STATISTICS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?'
+    );
+    $stmt->execute([$tabla, $indice]);
+    return (int) $stmt->fetchColumn() > 0;
+};
+
+if (!$indiceExiste('producto_imagenes', 'idx_imagenes_producto')) {
+    $db->exec('CREATE INDEX idx_imagenes_producto ON producto_imagenes (producto_id)');
+}
+if (!$indiceExiste('producto_especificaciones', 'idx_specs_producto')) {
+    $db->exec('CREATE INDEX idx_specs_producto ON producto_especificaciones (producto_id)');
+}
+
 // ---------- Siembra de datos iniciales (solo si están vacías) ----------
 
 $rolesCount = (int) $db->query('SELECT COUNT(*) FROM roles')->fetchColumn();

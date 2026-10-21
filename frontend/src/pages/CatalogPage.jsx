@@ -147,6 +147,18 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
     setTimeout(() => setNotice(""), 5000)
   }
 
+  // Relee el catálogo completo para que las tarjetas reflejen al instante
+  // los cambios guardados (imágenes, precio, estado, etc.).
+  const refreshProductos = async () => {
+    try {
+      const list = await api.getProductos()
+      setProducts(list)
+      return list
+    } catch {
+      return null
+    }
+  }
+
   const openCreate = () => {
     setEditing(null)
     setFormOpen(true)
@@ -171,8 +183,11 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
         setProducts((prev) => [created, ...prev])
         setSuccessMsg("El producto se creó correctamente.")
       }
+      // Refresca el listado general para actualizar las tarjetas sin recargar.
+      await refreshProductos()
     } catch (err) {
       showError(err.message || "Error al guardar el producto.")
+      throw err
     }
   }
 
