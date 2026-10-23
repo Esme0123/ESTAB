@@ -34,6 +34,14 @@ if (!$user || !password_verify($password, $user['password'])) {
 }
 
 // Sesión PHP: permite seguir autenticado aunque el token caduque.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'use_strict_mode' => 1,
+        'use_only_cookies' => 1,
+    ]);
+}
 loginPhpSession($user);
 
 jsonResponse([

@@ -145,16 +145,37 @@ function decodeToken(string $token): ?array
     return ['user_id' => $userId, 'issued' => $issued];
 }
 
+function getBearerToken(): ?string
+{
+    $auth = authorizationHeader();
+    if (!$auth) {
+        return null;
+    }
+    if (preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
+        return trim($m[1]);
+    }
+    return null;
+}
+
 function authorizationHeader(): ?string
 {
     if (function_exists('getallheaders')) {
         $headers = getallheaders();
-        $auth = $headers['Authorization'] ?? null;
+        $auth = $headers['Authorization'] ?? ($headers['authorization'] ?? null);
         if ($auth) {
             return $auth;
         }
     }
-    return $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        return $_SERVER['HTTP_AUTHORIZATION'];
+    }
+    if (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+    if (!empty($_SERVER['Authorization'])) {
+        return $_SERVER['Authorization'];
+    }
+    return null;
 }
 
 /**
@@ -273,12 +294,16 @@ function fetchUserById(int $userId): ?array
  */
 function bearerUser(): ?array
 {
-    $auth = authorizationHeader();
-    if (!$auth || !preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
-        return null;
+    $token = getBearerToken();
+    if (!$token) {
+        $auth = authorizationHeader();
+        if (!$auth || !preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
+            return null;
+        }
+        $token = trim($m[1]);
     }
 
-    $tokenData = decodeToken(trim($m[1]));
+    $tokenData = decodeToken($token);
     if (!$tokenData) {
         return null;
     }
