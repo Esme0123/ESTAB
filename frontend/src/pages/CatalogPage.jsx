@@ -59,6 +59,24 @@ const CATEGORY_STYLES = {
   },
 }
 
+const DEFAULT_COVER = /(^|\/)fallback-product\.webp$/i
+
+const toImageUrl = (value) => {
+  if (!value) return ""
+  if (typeof value === "string") return value.trim()
+  return String(value.url_imagen || value.url || value.imagen || "").trim()
+}
+
+function getProductImage(product) {
+  const first = product.imagenes?.[0]
+  const url =
+    toImageUrl(first) ||
+    toImageUrl(product.imagen) ||
+    toImageUrl(product.url_imagen)
+  const path = url.split(/[?#]/)[0]
+  return !url || DEFAULT_COVER.test(path) ? "" : url
+}
+
 const FILTER_STYLES = {
   all: "border-[#EAB308] bg-[#1A1C38] text-white shadow-lg shadow-[#EAB308]/25",
   1: "border-amber-300 bg-amber-400 text-slate-900 shadow-lg shadow-amber-400/40",
@@ -381,7 +399,7 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
               {filtered.map((product) => {
                 const cat = findCat(product.categoria_id, product.categoria_nombre)
                 const catStyle = CATEGORY_STYLES[product.categoria_id] || CATEGORY_STYLES[3]
-                const firstImage = product.imagenes?.[0]
+                const firstImage = getProductImage(product)
                 const isSelected = selectedProducts.some((p) => p.id === product.id)
                 const inactivo = product.estado === "inactivo"
                 return (
