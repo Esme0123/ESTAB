@@ -130,6 +130,16 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
     [allProducts]
   )
 
+  const categoryCounts = useMemo(() => {
+    const counts = {}
+    allProducts.forEach((p) => {
+      if (p.estado === "activo") {
+        counts[p.categoria_id] = (counts[p.categoria_id] || 0) + 1
+      }
+    })
+    return counts
+  }, [allProducts])
+
   const filtered = useMemo(() => {
     return allProducts.filter((p) => {
       if (p.estado === "inactivo" && !esAdmin) return false
@@ -335,6 +345,15 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
             }`}
           >
             Todos
+            <span
+              className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full ${
+                !activeCategory
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              {allProducts.filter((p) => p.estado === "activo").length}
+            </span>
           </button>
           {CATEGORIES.map((cat) => (
             <button
@@ -347,6 +366,15 @@ function CatalogPage({ products: allProducts, setProducts, loadError }) {
               }`}
             >
               {cat.emoji} {cat.nombre}
+              <span
+                className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full ${
+                  activeCategory === String(cat.id)
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                {categoryCounts[cat.id] || 0}
+              </span>
             </button>
           ))}
 
